@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!--ID를 입력받기 위한 뷰입니다-->
+    <TextView
+        android:id="@+id/tvId"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:text="ID"
+        android:gravity="center_vertical"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginTop="12dp"
+        android:paddingLeft="5dp"/>
+    <EditText
+        android:id="@+id/etId"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_below="@id/tvId"/>
+
+    <!--비밀번호를 입력받기 위한 뷰입니다-->
+    <TextView
+        android:id="@+id/tvPwd"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:text="PassWord"
+        android:gravity="center_vertical"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:paddingLeft="5dp"
+        android:layout_below="@id/etId"/>
+    <EditText
+        android:id="@+id/etPwd"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_below="@id/tvPwd"/>
+
+    <!--비밀번호를 확인하기 위한 뷰입니다-->
+    <LinearLayout
+        android:id="@+id/llPwdCheck"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:orientation="horizontal"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_below="@id/etPwd"
+        >
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="PassWord 확인"
+            android:gravity="center_vertical"
+            android:paddingLeft="5dp"/>
+        <TextView
+            android:id="@+id/tvPwdAlert"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="8dp"
+            android:gravity="center_vertical"/>
+    </LinearLayout>
+    <EditText
+        android:id="@+id/etPwdCheck"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_below="@id/llPwdCheck"/>
+
+    <!--e-mail을 입력받기 위한 뷰입니다-->
+    <TextView
+        android:id="@+id/tvEmail"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:text="E-Mail"
+        android:gravity="center_vertical"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:paddingLeft="5dp"
+        android:layout_below="@id/etPwdCheck"/>
+    <EditText
+        android:id="@+id/etEmail"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_below="@id/tvEmail"/>
+
+    <!--선생님인지 학생인지 체크받기 위한 뷰입니다.-->
+    <TextView
+        android:id="@+id/tvPosition"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:text="직책"
+        android:gravity="center_vertical"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:paddingLeft="5dp"
+        android:layout_below="@id/etEmail"/>
+    <RadioGroup
+        android:id="@+id/rgPosition"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:orientation="horizontal"
+        android:layout_marginLeft="40dp"
+        android:layout_marginRight="40dp"
+        android:layout_below="@id/tvPosition">
+        <RadioButton
+            android:id="@+id/rbTeacher"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="선생님"/>
+        <RadioButton
+            android:id="@+id/rbStudent"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="학생"/>
+    </RadioGroup>
+
+    <!--회원가입을 완료하기 위한 버튼입니다.-->
+    <Button
+        android:id="@+id/btnOk"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginTop="8dp"
+        android:text="가입"
+        android:background="#eeeeee"
+        android:layout_below="@id/rgPosition"/>
+
+    <!--회원가입 activity를 취소(나가기)위한 버튼입니다.-->
+    <Button
+        android:id="@+id/btnCancel"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginTop="8dp"
+        android:text="취소"
+        android:background="#eeeeee"
+        android:layout_below="@id/btnOk"/>
+
+</RelativeLayout>

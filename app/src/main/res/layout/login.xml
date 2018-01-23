@@ -7,6 +7,7 @@
     tools:context="com.example.theteacher.LoginActivity"
     android:orientation="vertical">
 
+    <!--로그인을 위해 ID를 입력받는 뷰입니다.-->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="45dp"
@@ -16,14 +17,15 @@
         android:layout_marginLeft="40dp"
         android:layout_marginRight="40dp"
         android:layout_marginTop="120dp"/>
-
     <EditText
         android:layout_width="match_parent"
         android:layout_height="45dp"
         android:layout_marginLeft="40dp"
         android:layout_marginRight="40dp"
-        android:hint="ID를 입력해 주세요."/>
+        android:hint="ID를 입력해 주세요."
+        android:textSize="15sp"/>
 
+    <!--로그인을 위해 비밀번호를 입력받는 뷰입니다.-->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="45dp"
@@ -39,25 +41,30 @@
         android:layout_height="45dp"
         android:layout_marginLeft="40dp"
         android:layout_marginRight="40dp"
-        android:hint="P/W를 입력해 주세요."/>
+        android:hint="P/W를 입력해 주세요."
+        android:textSize="15sp"/>
 
+    <!--아이디와 비밀번호를 입력 후 누르는 확인 버튼입니다.-->
     <Button
+        android:id="@+id/btnLogin"
         android:layout_width="match_parent"
         android:layout_height="35dp"
-        android:text="Login"
+        android:text="확인"
         android:layout_gravity="center"
         android:background="#eeeeee"
         android:layout_marginLeft="40dp"
         android:layout_marginRight="40dp"
         android:layout_marginTop="15dp"/>
 
+    <!--회원이 아닐 경우 회원가입으로 유도하기 위한 버튼입니다.-->
     <Button
+        android:id="@+id/btnMemberJoin"
         android:layout_width="match_parent"
         android:layout_height="35dp"
-        android:text="Member Join"
-        android:layout_marginRight="40dp"
         android:layout_marginLeft="40dp"
+        android:layout_marginRight="40dp"
         android:layout_marginTop="5dp"
-        android:background="#eeeeee"/>
+        android:background="#eeeeee"
+        android:text="회원 가입" />
 
 </LinearLayout>
