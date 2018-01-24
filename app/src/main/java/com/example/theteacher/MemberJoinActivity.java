@@ -26,8 +26,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -36,7 +34,7 @@ import java.util.Date;
 
 /**
  * Created by kimhj on 2018-01-23.
- * 이 페이지는 처음 설치한 유저들의 회원가입을 위한 액티비티입니다.
+ * 이 클래스는 처음 설치한 유저들의 회원가입을 위한 액티비티입니다.
  */
 
 public class MemberJoinActivity extends AppCompatActivity {
@@ -57,8 +55,7 @@ public class MemberJoinActivity extends AppCompatActivity {
     String position;    // 클라이언트 직책 선택(선생님 or 학생)
     String joinDate;    // 클라이언트 회원 가입 시간
 
-    int pwdCheck;       // 클라이언트 비밀번호 확인 > 일치하면 확인 버튼 클릭 시 정상적으로 진행될 수 있게 체크하는 정수
-    String sendProfile; // 서버에 전송될 JSON 형태의 String
+    int pwdCheck;       // 클라이언트 비밀번호 확인 > 일치하면 확인 버튼 클릭 시 정상적으로 진행될 수 있게 체크하는 정수(btnOk의 클릭리스너 참고)
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -141,6 +138,9 @@ public class MemberJoinActivity extends AppCompatActivity {
                     email = etEmail.getText().toString();
                     joinDate = sdf.format(d);
 
+                    // id, pwd, email, position이 비어있으면 입력을 요청합니다.
+                    // pwdCheck 변수는 TextWatcher에서 일치하다고 판단되면 1, 불일치는 0을 담고 있습니다.
+                    // 따라서 pwdCheck 변수가 0이면 확인하도록 유도합니다.
                     if(TextUtils.isEmpty(id)){
                         Toast.makeText(getApplicationContext(), "ID를 입력해주세요", Toast.LENGTH_SHORT).show();
                     } else if(TextUtils.isEmpty(pwd)){
@@ -160,10 +160,8 @@ public class MemberJoinActivity extends AppCompatActivity {
                             sendJsonObj.put("position", position);
                             sendJsonObj.put("joinDate", joinDate);
 
-                            sendProfile = sendJsonObj.toString();
-
-                            SendData sendData = new SendData(MemberJoinActivity.this);
-                            sendData.execute(sendProfile);
+                            JoinData sendData = new JoinData(MemberJoinActivity.this);
+                            sendData.execute(sendJsonObj.toString());
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -183,27 +181,27 @@ public class MemberJoinActivity extends AppCompatActivity {
     // 서버로 회원가입 요청한 데이터를 전송하는 AsyncTask입니다.
     // id, 비밀번호, email, 직책, 가입날짜를 전송하고
     // 성공하면 sessionid 값, 실패하면 string "failed"를 받아옵니다.
-    class SendData extends AsyncTask<String, Void, String> {
+    class JoinData extends AsyncTask<String, Void, String> {
 
         Context context;
-        ProgressDialog async;
+        ProgressDialog proDialog;
 
-        public SendData(Context con){
+        public JoinData(Context con){
             context = con;
         }
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            async = new ProgressDialog(context);
-            async.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            async.show();
+            proDialog = new ProgressDialog(context);
+            proDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            proDialog.show();
         }
 
         @Override
         protected String doInBackground(String... params) {
             String data = params[0];
-            Log.i("MemberJoinAct:SendData:", data);
+            Log.i("MemberJoinAct:JoinData:", data);
             try{
                 URL url = new URL("http://o-ddang.com/theteacher/memberJoin.php");
                 HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
@@ -228,7 +226,7 @@ public class MemberJoinActivity extends AppCompatActivity {
                     builder.append(str + "\n");
                 }
                 String result = builder.toString();
-                Log.i("MemberJoinAct:SendData:", result);
+                Log.i("MemberJoinAct:JoinData:", result);
                 return result;
             } catch (MalformedURLException e) {
                 e.printStackTrace();
@@ -241,25 +239,18 @@ public class MemberJoinActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(String s) {
+            // 회원가입의 결과로 서버에서 받아오는 String은 성공시 사용자의 id, 실패시 "failed"입니다.
             super.onPostExecute(s);
-            Log.i("MemberJoinAct:SendData:", s);
-            async.dismiss();
+            Log.i("MemberJoinAct:JoinData:", s);
+            proDialog.dismiss();
             if(s.trim().equals("failed")){
                 Toast.makeText(getApplicationContext(), "회원가입에 실패하였습니다. 잠시 후 다시 시도해주세요.", Toast.LENGTH_SHORT).show();
             } else {
-                SharedPreferences sharedPreferences = getSharedPreferences("profile", MODE_PRIVATE);
-                SharedPreferences.Editor editor = sharedPreferences.edit();
-
-                editor.putString("id", id);
-                editor.putString("position", position);
-                editor.putString("sessionID", "PHPSESSID="+s);  //session2
-                editor.commit();
-
-                Toast.makeText(getApplicationContext(), "회원가입이 완료되었습니다.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "ID : "+s+" 님의 회원가입이 완료되었습니다.", Toast.LENGTH_SHORT).show();
                 finish();
             }
         }
-    } // SendData AsyncTask 끝나는 부분입니다.
+    } // JoinData AsyncTask 끝나는 부분입니다.
 
 
 

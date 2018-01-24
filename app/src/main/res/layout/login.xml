@@ -18,6 +18,7 @@
         android:layout_marginRight="40dp"
         android:layout_marginTop="120dp"/>
     <EditText
+        android:id="@+id/etLoginId"
         android:layout_width="match_parent"
         android:layout_height="45dp"
         android:layout_marginLeft="40dp"
@@ -35,8 +36,8 @@
         android:layout_marginLeft="40dp"
         android:layout_marginRight="40dp"
         android:layout_marginTop="20dp"/>
-
     <EditText
+        android:id="@+id/etLoginPwd"
         android:layout_width="match_parent"
         android:layout_height="45dp"
         android:layout_marginLeft="40dp"
