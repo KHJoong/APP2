@@ -39,7 +39,8 @@
         android:layout_height="40dp"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
-        android:layout_below="@id/tvPwd"/>
+        android:layout_below="@id/tvPwd"
+        android:inputType="textPassword"/>
 
     <!--비밀번호를 확인하기 위한 뷰입니다-->
     <LinearLayout
@@ -70,7 +71,8 @@
         android:layout_height="40dp"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
-        android:layout_below="@id/llPwdCheck"/>
+        android:layout_below="@id/llPwdCheck"
+        android:inputType="textPassword"/>
 
     <!--e-mail을 입력받기 위한 뷰입니다-->
     <TextView
