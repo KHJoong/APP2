@@ -41,14 +41,14 @@ public class MainActivity extends AppCompatActivity {
     private CharSequence menuName;
     // 프래그먼트 전환을 부드럽게 처리하기 위하여 스레드를 사용해 처리합니다.
     // 그 때 사용하기 위한 Handler입니다.
-    private Handler handler = new Handler();
+    private Handler hdrSwitchFrag = new Handler();
 
     // 슬라이딩 메뉴 버튼을 클릭 시 다음 메뉴가 나타나게 됩니다.
     // 위의 menuList 배열에 다음 메뉴 이름을 String으로 담습니다.
     public MainActivity() {
         Collections.addAll(menuList, new String[]{
                 "Home",
-                "My Page"
+                "Setting"
         });
     }
 
@@ -87,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
                 fragment = new MainActivity_Frag1();
                 break;
             case 1:
-                fragment = new MainActivity_My_Page();
+                fragment = new MainActivity_Setting();
                 break;
             default:
                 break;
@@ -95,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (fragment != null) {
             // 프래그먼트 전환의 부드러운 처리를 위해 스레드로 처리합니다.
-            handler.post(new CommitFragmentRunnable(fragment));
+            hdrSwitchFrag.post(new CommitFragmentRunnable(fragment));
 
             lvMenuList.setItemChecked(position, true);
             lvMenuList.setSelection(position);
@@ -129,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
             public void onItemClick(AdapterView <  ?  > parent, View view, int position, long id) {
                 menuName = menuList.get(position);
                 if(position==0){
-                    getSupportActionBar().setTitle(R.string.app_name);
+                    getSupportActionBar().setTitle(baseName);
                 } else {
                     getSupportActionBar().setTitle(menuName);
                 }
@@ -145,7 +145,7 @@ public class MainActivity extends AppCompatActivity {
             public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
                 if(menuName.equals("Home")){
-                    getSupportActionBar().setTitle(R.string.app_name);
+                    getSupportActionBar().setTitle(baseName);
                 } else {
                     getSupportActionBar().setTitle(menuName);
                 }
@@ -155,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
             public void onDrawerClosed(View drawerView) {
                 super.onDrawerClosed(drawerView);
                 if(menuName.equals("Home")){
-                    getSupportActionBar().setTitle(R.string.app_name);
+                    getSupportActionBar().setTitle(baseName);
                 } else {
                     getSupportActionBar().setTitle(menuName);
                 }

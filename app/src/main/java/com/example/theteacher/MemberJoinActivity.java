@@ -139,7 +139,7 @@ public class MemberJoinActivity extends AppCompatActivity {
                     joinDate = sdf.format(d);
 
                     // id, pwd, email, position이 비어있으면 입력을 요청합니다.
-                    // pwdCheck 변수는 TextWatcher에서 일치하다고 판단되면 1, 불일치는 0을 담고 있습니다.
+                    // pwdCheck 변수는 TextWatcher에서 유저가 입력한 비밀번호와 비밀번호 확인이 일치한다고 판단되면 1, 불일치는 0을 담고 있습니다.
                     // 따라서 pwdCheck 변수가 0이면 확인하도록 유도합니다.
                     if(TextUtils.isEmpty(id)){
                         Toast.makeText(getApplicationContext(), "ID를 입력해주세요", Toast.LENGTH_SHORT).show();
@@ -160,8 +160,8 @@ public class MemberJoinActivity extends AppCompatActivity {
                             sendJsonObj.put("position", position);
                             sendJsonObj.put("joinDate", joinDate);
 
-                            JoinData sendData = new JoinData(MemberJoinActivity.this);
-                            sendData.execute(sendJsonObj.toString());
+                            JoinData joinData = new JoinData(MemberJoinActivity.this);
+                            joinData.execute(sendJsonObj.toString());
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -242,12 +242,21 @@ public class MemberJoinActivity extends AppCompatActivity {
             // 회원가입의 결과로 서버에서 받아오는 String은 성공시 사용자의 id, 실패시 "failed"입니다.
             super.onPostExecute(s);
             Log.i("MemberJoinAct:JoinData:", s);
+            String processResult = null;
+            String userId = null;
+            try {
+                JSONObject jo = new JSONObject(s);
+                userId = jo.getString("id");
+                processResult = jo.getString("success");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
             proDialog.dismiss();
-            if(s.trim().equals("failed")){
-                Toast.makeText(getApplicationContext(), "회원가입에 실패하였습니다. 잠시 후 다시 시도해주세요.", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(getApplicationContext(), "ID : "+s+" 님의 회원가입이 완료되었습니다.", Toast.LENGTH_SHORT).show();
+            if(processResult.equals("success")){
+                Toast.makeText(getApplicationContext(), "ID : "+userId+" 님의 회원가입이 완료되었습니다.", Toast.LENGTH_SHORT).show();
                 finish();
+            } else {
+                Toast.makeText(getApplicationContext(), "회원가입에 실패하였습니다. 잠시 후 다시 시도해주세요.", Toast.LENGTH_SHORT).show();
             }
         }
     } // JoinData AsyncTask 끝나는 부분입니다.
