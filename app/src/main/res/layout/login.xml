@@ -43,6 +43,7 @@
         android:layout_marginLeft="40dp"
         android:layout_marginRight="40dp"
         android:hint="P/W를 입력해 주세요."
+        android:inputType="textPassword"
         android:textSize="15sp"/>
 
     <!--아이디와 비밀번호를 입력 후 누르는 확인 버튼입니다.-->
