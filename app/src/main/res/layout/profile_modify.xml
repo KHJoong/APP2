@@ -114,6 +114,12 @@
             android:gravity="center_vertical"
             android:layout_below="@id/tvNewPwdCheck"
             android:inputType="textPassword"/>
+        <TextView
+            android:id="@+id/tvPwdAlert"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/etNewPwd"
+            android:layout_toRightOf="@id/tvNewPwdCheck"/>
         <Button
             android:id="@+id/btnProfileChange"
             android:layout_width="140dp"

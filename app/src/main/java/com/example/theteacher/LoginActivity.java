@@ -172,6 +172,7 @@ public class LoginActivity extends AppCompatActivity {
             String id = null;
             String position = null;
             String sessionId = null;
+            String picUri = null;
 
             try {
                 JSONObject receiveJsonObj = new JSONObject(s);
@@ -180,6 +181,7 @@ public class LoginActivity extends AppCompatActivity {
                     id = receiveJsonObj.getString("id");
                     position = receiveJsonObj.getString("position");
                     sessionId = receiveJsonObj.getString("PHPSESSID");
+                    picUri = "http://www.o-ddang.com/theteacher/"+receiveJsonObj.getString("picUrl");
 
                     SharedPreferences sp = getSharedPreferences("profile", MODE_PRIVATE);
                     SharedPreferences.Editor editor = sp.edit();
@@ -187,6 +189,7 @@ public class LoginActivity extends AppCompatActivity {
                     editor.putString("id", id);
                     editor.putString("position", position);
                     editor.putString("sessionID", "PHPSESSID="+sessionId);
+                    editor.putString("picUrl", picUri);
                     editor.commit();
 
                     Intent intent = new Intent(getApplicationContext(), MainActivity.class);

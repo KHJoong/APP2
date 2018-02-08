@@ -11,6 +11,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -23,7 +24,9 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -34,6 +37,9 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -41,7 +47,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -54,9 +62,17 @@ import java.util.List;
 
 public class ProfileModifyActivity extends AppCompatActivity {
 
+    // onActivityResult() 를 위해 쓰이는 코드입니다.
+    // 크롭했을 때의 코드입니다.
     private final static int CROP_CODE = 5555;
+    // 카메라로 찍을 때의 코드입니다.
     private final static int CAMERA_CODE = 1111;
+    // 갤러리를 이용했을 때의 코드입니다.
     private final static int GALLERY_CODE = 3333;
+
+    // 새로 입력한 비밀번호화 비밀번호 확인이 일치한지 여부를 담고있는 변수입니다.
+    // 일치하면 1 , 일치하지 않으면 0을 담습니다.
+    int pwdCheck = 0;
 
     private static String currentPhotoPath;
     private static Uri photoUri;
@@ -69,6 +85,7 @@ public class ProfileModifyActivity extends AppCompatActivity {
     EditText etExPwd;
     EditText etNewPwd;
     EditText etNewPwdCheck;
+    TextView tvPwdAlert;
     Button btnProfileChange;
 
     // 메모리 읽기와 쓰기, 카메라의 권한을 체크할 때 쓸 배열입니다.
@@ -95,12 +112,42 @@ public class ProfileModifyActivity extends AppCompatActivity {
         etExPwd = (EditText) findViewById(R.id.etExPwd);
         etNewPwd = (EditText) findViewById(R.id.etNewPwd);
         etNewPwdCheck = (EditText) findViewById(R.id.etNewPwdCheck);
+        tvPwdAlert = (TextView)findViewById(R.id.tvPwdAlert);
         btnProfileChange = (Button) findViewById(R.id.btnProfileChange);
 
-        if(!TextUtils.isEmpty(sp.getString("picUri", null))){
-            Uri uri = Uri.parse(sp.getString("picUri", null));
-            Glide.with(this).load(uri).into(ivProfilePic);
+        String picUrl = sp.getString("picUrl", null);
+
+        if(!TextUtils.isEmpty(picUrl)){
+            Glide.with(this).load(picUrl).into(ivProfilePic);
+        } else {
+            Glide.with(this).load(R.drawable.base_profile_img).into(ivProfilePic);
         }
+
+        etNewPwdCheck.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                String pwd = etNewPwd.getText().toString();
+                if(pwd.equals(etNewPwdCheck.getText().toString())){
+                    tvPwdAlert.setText("입력하신 비밀번호가 일치합니다.");
+                    tvPwdAlert.setTextColor(Color.GRAY);
+                    pwdCheck = 1;
+                } else {
+                    tvPwdAlert.setText("위의 비밀번호와 같지 않습니다.");
+                    tvPwdAlert.setTextColor(Color.RED);
+                    pwdCheck = 0;
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
 
         btnCamera.setOnClickListener(btnClickListener);
         btnGallery.setOnClickListener(btnClickListener);
@@ -120,9 +167,18 @@ public class ProfileModifyActivity extends AppCompatActivity {
                     TakePicGalleryIntent();
                     break;
                 case R.id.btnPicRemove:
+                    RemovePic();
                     break;
                 case R.id.btnProfileChange:
-
+                    if(!TextUtils.isEmpty(etExPwd.getText().toString())){
+                        if(pwdCheck==1){
+                            String exPwd = etExPwd.getText().toString();
+                            String newPwd = etNewPwd.getText().toString();
+                            ChangeProfile(exPwd, newPwd);
+                        }
+                    } else {
+                        Toast.makeText(ProfileModifyActivity.this, "비밀번호를 입력해주세요.", Toast.LENGTH_SHORT).show();
+                    }
                     break;
             }
         }
@@ -304,9 +360,7 @@ public class ProfileModifyActivity extends AppCompatActivity {
 
     // 갤러리에서 사진을 선택하겠다고 요청할 경우 실행되는 함수입니다.
     public void TakePicGalleryIntent(){
-//        Intent takePicGalleryIntent = new Intent(Intent.ACTION_GET_CONTENT);
         Intent takePicGalleryIntent = new Intent(Intent.ACTION_PICK);
-//        takePicGalleryIntent.setType(MediaStore.Images.Media.CONTENT_TYPE);
         takePicGalleryIntent.setData(MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         startActivityForResult(takePicGalleryIntent, GALLERY_CODE);
     }
@@ -325,8 +379,8 @@ public class ProfileModifyActivity extends AppCompatActivity {
                             }
                         });
             } else if(requestCode==CROP_CODE){
+                // 유저가 선택한 사진을 Imageview에 매핑하고, 서버에도 업로드하는 함수입니다.
                 savePhoto();
-
             } else if(requestCode==GALLERY_CODE){
                 if (data == null) {
                     return;
@@ -338,12 +392,44 @@ public class ProfileModifyActivity extends AppCompatActivity {
         }
     }
 
+    // 유저가 선택한 사진을 서버로 보내는 AsyncTask를 실행시킵니다.
+    // 성공적으로 서버에 등록되면 ImageView에 그 사진을 띄웁니다.
+    // 실패할 경우 AlertDialog를 띄워줍니다.
     public void savePhoto(){
-        File photo = new File(photoUri.getPath());
         UploadPic uploadPic = new UploadPic(this, currentPhotoPath);
         uploadPic.execute();
     }
 
+    // 유저가 업로드했던 사진을 삭제하는 AsyncTask입니다.
+    // 성공할 경우 서버에 업로드했던 사진의 경로를 삭제하고 Imageview를 기본 이미지 사진으로 바꿉니다.
+    public void RemovePic(){
+        RemovePic removePic = new RemovePic(this);
+        removePic.execute();
+    }
+
+    public void ChangeProfile(String Ex, String New){
+        String exP = Ex;
+        String newP = New;
+
+        JSONObject jo = new JSONObject();
+        try {
+            jo.put("id", sp.getString("id",""));
+            jo.put("exP",exP);
+            jo.put("newP", newP);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        String send = jo.toString();
+
+        ChangeProfile cp = new ChangeProfile(this);
+        cp.execute(send);
+    }
+
+    // 유저가 선택한 사진을 서버로 보내기 위한 AsyncTask입니다.
+    // 업로드 성공시 : ImageView에 그 사진 매핑
+    // 업로드 실패시 : AlertDialog로 실패 알림
+    // onActivityResult()에서 requestCode가 CROP_CODE인 경우 savePhoto()가 실행되고 그 안에서 이 Async가 시작됩니다.
     public class UploadPic extends AsyncTask<String, String, String>{
 
         // AsyncTask가 진행되는 동안 돌아갈 ProgressDialog입니다.
@@ -458,15 +544,24 @@ public class ProfileModifyActivity extends AppCompatActivity {
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
             proDialog.dismiss();
-            if(s.equals("UploadSuccess")){
+            String result = null;
+            String picUrl = null;
+            try {
+                JSONObject getJsonData = new JSONObject(s);
+                result = getJsonData.getString("process");
+                picUrl = getJsonData.getString("picUrl");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            if(result.equals("UploadSuccess")){
                 Glide.with(upContext).load(photoUri).into(ivProfilePic);
                 SharedPreferences.Editor spEditor = sp.edit();
-                spEditor.putString("picUri", photoUri.toString());
+                spEditor.putString("picUrl", "http://www.o-ddang.com/theteacher/"+picUrl);
                 spEditor.commit();
 
                 Toast.makeText(upContext, "사진 파일 업데이트에 성공하였습니다.", Toast.LENGTH_SHORT).show();
             } else {
-                // 로그인 실패 시 확인 알람 창 띄워줍니다.
+                // 사진 업로드 실패 시 확인 알람 창 띄워줍니다.
                 alertDialogBuilder.setMessage("사진 혹은 네트워크 상태를 다시 확인해주세요.")
                         .setNeutralButton("OK", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
@@ -477,9 +572,176 @@ public class ProfileModifyActivity extends AppCompatActivity {
         }
     }
 
+    // 유저가 선택했던 사진을 삭제하는 AsyncTask입니다.
+    // 삭제를 요청할 경우 서버에 업로드한 유저의 사진의 경로를 삭제합니다.
+    // 다른 사람이 이 유저의 사진은 기본 사진을 보게 됩니다.
+    // RemovePic() 에서 불러집니다.
+    public class RemovePic extends AsyncTask<Void, String, String>{
 
+        Context rpContext;
 
+        // AsyncTask가 진행되는 동안 돌아갈 ProgressDialog입니다.
+        ProgressDialog proDialog;
+        // 사진 삭제에 실패하면 띄워줄 AlertDialog입니다.
+        AlertDialog.Builder alertDialogBuilder;
 
+        public RemovePic(Context context){
+            rpContext = context;
+
+            alertDialogBuilder = new AlertDialog.Builder(context);
+            proDialog = new ProgressDialog(context);
+            proDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            proDialog.show();
+        }
+
+        @Override
+        protected String doInBackground(Void... voids) {
+            JSONObject jo = new JSONObject();
+            try {
+                jo.put("id", sp.getString("id",""));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            String sendData = jo.toString();
+            try{
+                URL url = new URL("http://www.o-ddang.com/theteacher/removePic.php");
+                HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
+
+                httpURLConnection.setDefaultUseCaches(false);
+                httpURLConnection.setDoInput(true);
+                httpURLConnection.setDoOutput(true);
+                httpURLConnection.setRequestMethod("POST");
+
+                httpURLConnection.setRequestProperty("Accept", "application/json");
+                httpURLConnection.setRequestProperty("Content-type", "application/json");
+
+                OutputStream os = httpURLConnection.getOutputStream();
+                os.write(sendData.getBytes());
+                os.flush();
+
+                InputStreamReader tmp = new InputStreamReader(httpURLConnection.getInputStream(), "EUC-KR");
+                BufferedReader reader = new BufferedReader(tmp);
+                StringBuilder builder = new StringBuilder();
+                String str;
+                while ((str = reader.readLine()) != null) {
+                    builder.append(str);
+                }
+                String result = builder.toString();
+                return result;
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+                return e.getMessage();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return e.getMessage();
+            }
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+            proDialog.dismiss();
+            if(s.equals("RemoveSuccess")){
+                Glide.with(rpContext).load(R.drawable.base_profile_img).into(ivProfilePic);
+                SharedPreferences.Editor spEditor = sp.edit();
+                spEditor.putString("picUrl", null);
+                spEditor.commit();
+            } else {
+                // 사진 삭제 실패 시 확인 알람 창 띄워줍니다.
+                alertDialogBuilder.setMessage("잠시 후 다시 시도해주세요.")
+                        .setNeutralButton("OK", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.cancel();
+                            }
+                        }).create().show();
+            }
+        }
+    }
+
+    // 유저가 요청한 비밀번호 수정을 서버에 요청하는 AsyncTask입니다.
+    // 서버로 전송했을 때, 이번 비밀번호와 일치하지 않는 경우 ChangeProfileFail이 리턴됩니다.
+    // ChangeProfile() 에서 불러집니다.
+    public class ChangeProfile extends AsyncTask<String, String, String>{
+
+        Context cpContext;
+
+        // AsyncTask가 진행되는 동안 돌아갈 ProgressDialog입니다.
+        ProgressDialog proDialog;
+        // 비밀번호 변경에 실패하면 띄워줄 AlertDialog입니다.
+        AlertDialog.Builder alertDialogBuilder;
+
+        public ChangeProfile(Context context){
+            cpContext = context;
+
+            alertDialogBuilder = new AlertDialog.Builder(context);
+            proDialog = new ProgressDialog(context);
+            proDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            proDialog.show();
+        }
+
+        @Override
+        protected String doInBackground(String... params) {
+            String data = params[0];
+
+            try{
+                URL url = new URL("http://o-ddang.com/theteacher/changeProfile.php");
+                HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
+
+                httpURLConnection.setDefaultUseCaches(false);
+                httpURLConnection.setDoInput(true);
+                httpURLConnection.setDoOutput(true);
+                httpURLConnection.setRequestMethod("POST");
+
+                httpURLConnection.setRequestProperty("Accept", "application/json");
+                httpURLConnection.setRequestProperty("Content-type", "application/json");
+
+                OutputStream os = httpURLConnection.getOutputStream();
+                os.write(data.getBytes());
+                os.flush();
+
+                InputStreamReader tmp = new InputStreamReader(httpURLConnection.getInputStream(), "EUC-KR");
+                BufferedReader reader = new BufferedReader(tmp);
+                StringBuilder builder = new StringBuilder();
+                String str;
+                while ((str = reader.readLine()) != null) {
+                    builder.append(str);
+                }
+                String result = builder.toString();
+                return result;
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+                return e.getMessage();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return e.getMessage();
+            }
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+            proDialog.dismiss();
+            String result = null;
+            try {
+                JSONObject jo = new JSONObject(s);
+                result = jo.getString("process");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            if(result.equals("ChangeProfileSuccess")){
+                Toast.makeText(cpContext, "비밀번호를 변경하였습니다.", Toast.LENGTH_SHORT).show();
+            } else {
+                // 비밀번호 변경 실패 시 확인 알람 창 띄워줍니다.
+                alertDialogBuilder.setMessage("비밀번호를 확인해주세요.")
+                        .setNeutralButton("OK", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.cancel();
+                            }
+                        }).create().show();
+            }
+        }
+    }
 
 
 

@@ -4,13 +4,24 @@
     android:layout_height="match_parent">
 
     <Button
+        android:id="@+id/manageMyLecture"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="#dddddd"
+        android:layout_marginRight="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="8dp"
+        android:text="강의 관리"
+        android:textSize="18sp"/>
+
+    <Button
         android:id="@+id/modifyMyProfile"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:background="#dddddd"
         android:layout_marginRight="8dp"
         android:layout_marginLeft="8dp"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="8dp"
         android:text="프로필 수정"
         android:textSize="18sp"/>
 
