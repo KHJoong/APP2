@@ -40,6 +40,11 @@
         <activity android:name=".ProfileModifyActivity">
         </activity>
 
+        <!--position이 강사인 유저가 자신의 강의를 관리할 수 있도록 만든 화면입니다.-->
+        <activity android:name=".LectureManageActivity">
+        </activity>
+
+        <!--ProfileModifyActivity에서 카메라, 갤러리, 크롭을 위해 사용하는 provider입니다.-->
         <provider
             android:authorities="com.example.theteacher.provider"
             android:name="android.support.v4.content.FileProvider"

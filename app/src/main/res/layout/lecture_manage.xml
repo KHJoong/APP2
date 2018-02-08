@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/tvLecTitle"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:text="강의 제목"
+        android:textSize="15sp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical"/>
+    <EditText
+        android:id="@+id/etLecTitle"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:textSize="15sp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_below="@id/tvLecTitle"/>
+
+    <TextView
+        android:id="@+id/tvLecObj"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:text="강의 대상"
+        android:textSize="15sp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical"
+        android:layout_below="@id/etLecTitle"/>
+    <EditText
+        android:id="@+id/etLecObj"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:textSize="15sp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_below="@id/tvLecObj"/>
+
+    <TextView
+        android:id="@+id/tvLecExplain"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:text="강의 설명"
+        android:textSize="15sp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical"
+        android:layout_below="@id/etLecObj"/>
+    <EditText
+        android:id="@+id/etLecExplain"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:textSize="15sp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_below="@id/tvLecExplain"/>
+
+    <LinearLayout
+        android:id="@+id/btnContainer"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:orientation="horizontal"
+        android:layout_below="@id/etLecExplain"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginTop="4dp">
+        <Button
+            android:id="@+id/btnReset"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="작성 초기화"/>
+        <Button
+            android:id="@+id/btnEnroll"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="강의 등록"/>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvLecList"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:text="등록한 강의"
+        android:textSize="15sp"
+        android:gravity="center_vertical"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginTop="4dp"
+        android:layout_below="@id/btnContainer"/>
+
+    <ListView
+        android:id="@+id/lvLecList"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tvLecList"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"></ListView>
+
+</RelativeLayout>

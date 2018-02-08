@@ -12,6 +12,8 @@ public class _ref extends AppCompatActivity{
 
 
     // isLogged, id, position, sessionID, picUri가 저장되어 있는 sharedPreferences입니다.
+    // isLogged : YES or NO
+    // posidion : teacher or student
 
     // LoginActivity에서 로그인이 성공하면 저장합니다.
     // SplashActivity에서 isLogged 값을 확인한 후 로그인 된 상태면 MainActivity로, 안된 상태면 LoginActivity로 화면을 엽니다.
