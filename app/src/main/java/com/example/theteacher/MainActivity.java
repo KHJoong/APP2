@@ -84,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
         Fragment fragment = null;
         switch (position) {
             case 0:
-                fragment = new MainActivity_Frag1();
+                fragment = new MainActivity_Home();
                 break;
             case 1:
                 fragment = new MainActivity_Setting();

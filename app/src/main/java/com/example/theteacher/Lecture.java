@@ -26,7 +26,7 @@ public class Lecture {
         lecTitle = lt;
         lecObject = lo;
         lecExplain = le;
-        lecTitle = lti;
+        lecTime = lti;
     }
 
     public String getTeacherPicUrl(){

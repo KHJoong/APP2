@@ -129,6 +129,8 @@ public class LectureManageActivity extends AppCompatActivity {
         etLecExplain.setText(null);
     }
 
+    // 버튼 클릭했을 경우 키보드를 숨겨주는 함수입니다.
+    // LectureEnroll() 에서 성공적으로 강의를 등록했을 경우 발동합니다.
     public void dismissKeyboard(Activity activity) {
         InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
         if (null != activity.getCurrentFocus())
@@ -158,7 +160,7 @@ public class LectureManageActivity extends AppCompatActivity {
 
         @Override
         protected String doInBackground(String... params) {
-            String logindata = params[0];
+            String sendData = params[0];
             try{
                 URL url = new URL("http://www.o-ddang.com/theteacher/lectureEnroll.php");
                 HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
@@ -172,7 +174,7 @@ public class LectureManageActivity extends AppCompatActivity {
                 httpURLConnection.setRequestProperty("Content-type", "application/json");
 
                 OutputStream os = httpURLConnection.getOutputStream();
-                os.write(logindata.getBytes());
+                os.write(sendData.getBytes());
                 os.flush();
 
                 InputStreamReader tmp = new InputStreamReader(httpURLConnection.getInputStream(), "EUC-KR");

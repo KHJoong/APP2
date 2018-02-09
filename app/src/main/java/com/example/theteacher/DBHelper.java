@@ -10,6 +10,8 @@ import android.widget.ListView;
  * Created by kimhj on 2018-02-08.
  */
 
+// SQLite를 사용하기 위한 클래스입니다.
+// LectureManageActivity에서 자신이 강의를 등록할 때, 자신이 등록한 강의를 불러올 때 사용합니다.
 public class DBHelper extends SQLiteOpenHelper{
 
     public static final String DB_NAME = "Lecture.db";
