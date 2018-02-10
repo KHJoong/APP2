@@ -2,6 +2,7 @@ package com.example.theteacher;
 
 import android.annotation.SuppressLint;
 import android.app.Fragment;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
@@ -56,6 +57,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+
+        // Signaling 서버와의 소켓 연결을 위한 SocketService 실행 --------------------------------------
+        Intent socketIntent = new Intent(getApplicationContext(), SocketService.class);
+        startService(socketIntent);
+        // -----------------------------------------------------------------------------------------
 
         dlSlidingMenu = (DrawerLayout)findViewById(R.id.dlSlidingMenu);
         lvMenuList = (ListView)findViewById(R.id.lvMenuList);

@@ -4,6 +4,7 @@ import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -14,6 +15,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
+import android.widget.AdapterView;
 import android.widget.ListView;
 
 import org.json.JSONArray;
@@ -60,6 +62,18 @@ public class MainActivity_Home extends Fragment implements AbsListView.OnScrollL
         newLectureAdapter = new NewLecture_Adapter(getActivity());
 
         lvNewLecture.setAdapter(newLectureAdapter);
+        lvNewLecture.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                Intent showDetailIntent = new Intent(getActivity(), LectureDetailActivity.class);
+                showDetailIntent.putExtra("path", newLectureAdapter.nlItem.get(i).getTeacherPicUrl());
+                showDetailIntent.putExtra("id", newLectureAdapter.nlItem.get(i).getTeacherId());
+                showDetailIntent.putExtra("title", newLectureAdapter.nlItem.get(i).getLecTitle());
+                showDetailIntent.putExtra("object", newLectureAdapter.nlItem.get(i).getLecObject());
+                showDetailIntent.putExtra("explain", newLectureAdapter.nlItem.get(i).getLecExplain());
+                startActivity(showDetailIntent);
+            }
+        });
 
         startGetNewLecture(); // 성공적으로 목록을 받아왔을 경우 isPaging을 true로 설정해주는 부분이 getNewLecture Asynctask에 있습니다.
 

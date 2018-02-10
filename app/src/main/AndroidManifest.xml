@@ -15,6 +15,12 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
+        <!--Signaling Server에 소켓 연결하기 위한 서비스입니다.-->
+        <service
+            android:name=".SocketService"
+            android:enabled="true">
+        </service>
+
         <!--splash 화면입니다.-->
         <activity android:name=".SplashActivity" android:theme="@style/Theme.AppCompat.Light.NoActionBar">
             <intent-filter>
@@ -42,6 +48,14 @@
 
         <!--position이 강사인 유저가 자신의 강의를 관리할 수 있도록 만든 화면입니다.-->
         <activity android:name=".LectureManageActivity">
+        </activity>
+
+        <!--Home에서 강의를 클릭했을 때, 그 강의의 세부 정보를 보여주는 화면입니다.-->
+        <activity android:name=".LectureDetailActivity">
+        </activity>
+
+        <!--상담 전화를 요청하는 신호를 받으면 그 전화를 받을지, 끊을지 결정하는 화면입니다.-->
+        <activity android:name=".ReceiveSignalActivity">
         </activity>
 
         <!--ProfileModifyActivity에서 카메라, 갤러리, 크롭을 위해 사용하는 provider입니다.-->
