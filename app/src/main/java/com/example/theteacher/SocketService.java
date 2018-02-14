@@ -35,6 +35,8 @@ public class SocketService extends Service {
     SharedPreferences sp;
     String sendData;
     String otherId;
+    String addType;
+    String roomNum;
 
     // 서버에서부터 들어오는 신호를 받아주는 Thread입니다.
     // Signaling 서버이기 때문에 상담 전화 신호 요청을 받습니다.
@@ -103,10 +105,17 @@ public class SocketService extends Service {
                     Charset charset = Charset.forName("EUC-KR");
                     JSONObject ob = new JSONObject(charset.decode(byteBuffer).toString());
                     otherId = ob.getString("userId");
+                    addType = ob.getString("addType");
+                    roomNum = ob.getString("roomNum");
 
-                    Intent recSigIntent = new Intent(getApplicationContext(), ReceiveSignalActivity.class);
-                    recSigIntent.putExtra("id", otherId);
-                    startActivity(recSigIntent);
+                    if(addType.equals("start")){
+                        Intent recSigIntent = new Intent(getApplicationContext(), ReceiveSignalActivity.class);
+                        recSigIntent.putExtra("id", otherId);
+                        recSigIntent.putExtra("roomNum", roomNum);
+                        startActivity(recSigIntent);
+                    } else if(addType.equals("end")){
+
+                    }
 
                 } catch (IOException e) {
                     e.printStackTrace();
