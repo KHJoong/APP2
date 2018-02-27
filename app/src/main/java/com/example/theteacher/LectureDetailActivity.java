@@ -35,6 +35,7 @@ public class LectureDetailActivity extends AppCompatActivity {
     TextView tvObject;
     TextView tvExplain;
     Button btnVideoCall;
+    Button btnLectureReady;
 
     // MainActivity_Home에서 클릭한 아이템의 세부사항을 저장할 변수들입니다.
     String path;
@@ -88,8 +89,10 @@ public class LectureDetailActivity extends AppCompatActivity {
         tvObject = (TextView) findViewById(R.id.tvObject);
         tvExplain = (TextView) findViewById(R.id.tvExplain);
         btnVideoCall= (Button) findViewById(R.id.btnVideoCall);
+        btnLectureReady = (Button) findViewById(R.id.btnLectureReady);
 
         btnVideoCall.setOnClickListener(btnClickListener);
+        btnLectureReady.setOnClickListener(btnClickListener);
 
         // MainActivity_Home로부터 받은 Intent에 담겨있는 정보입니다.
         // 클릭한 강의의 세부 정보가 담겨 있습니다.
@@ -101,6 +104,11 @@ public class LectureDetailActivity extends AppCompatActivity {
         title = getDataFromHome.getStringExtra("title");
         object = getDataFromHome.getStringExtra("object");
         explain = getDataFromHome.getStringExtra("explain");
+
+        if(sp.getString("id","").equals(id)){
+            btnVideoCall.setVisibility(View.GONE);
+            btnLectureReady.setVisibility(View.VISIBLE);
+        }
 
         Glide.with(this).load(path).into(ivPic);
         tvId.setText(id);
@@ -140,10 +148,20 @@ public class LectureDetailActivity extends AppCompatActivity {
                     }).start();
                     connectToRoom(String.valueOf(reqRoomNum), false, false, false, 0);
                     break;
+                case R.id.btnLectureReady :
+                    Intent it = new Intent(getApplicationContext(), LecturePlayActivity.class);
+                    startActivity(it);
+                    break;
             }
         }
     };
 
+
+
+
+
+
+    // 아래 코드는 WebRTC 상담전화 신청할 때 쓰이는 코드입니다.
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == CONNECTION_REQUEST && commandLineRun) {

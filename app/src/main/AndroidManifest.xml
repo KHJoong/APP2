@@ -70,7 +70,12 @@
         <activity android:name=".ReceiveSignalActivity">
         </activity>
 
+        <!--학생이 상담 전화를 걸거나, 선생님이 상담 전화 요청을 수락하게 되면 보게되는 화면입니다. -->
         <activity android:name=".CallActivity">
+        </activity>
+
+        <!--선생님이 자신의 강의 세부 내용을 보는 곳(LectureDetailActivity)에서 강의 준비하기를 클릭하면 열리는 화면입니다.-->
+        <activity android:name=".LecturePlayActivity" android:theme="@style/Theme.AppCompat.NoActionBar">
         </activity>
 
         <!--ProfileModifyActivity에서 카메라, 갤러리, 크롭을 위해 사용하는 provider입니다.-->

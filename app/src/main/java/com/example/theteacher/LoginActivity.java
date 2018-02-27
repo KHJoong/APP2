@@ -81,6 +81,7 @@ public class LoginActivity extends AppCompatActivity {
                             e.printStackTrace();
                         }
 
+                        // 로그인을 위해 입력한 데이터를 서버로 보내 id와 pw가 일치하는지 확인하기 위한 AsyncTask입니다.
                         LoginData ctask = new LoginData(LoginActivity.this);
                         ctask.execute(sendJsonObj.toString());
                     }

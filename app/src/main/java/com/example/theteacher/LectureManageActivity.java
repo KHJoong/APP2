@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
@@ -13,6 +14,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -86,6 +88,19 @@ public class LectureManageActivity extends AppCompatActivity {
         // 저장되있는 등록된 강의들을 불러오는 부분입니다.
         dbHelper = new DBHelper(this);
         dbHelper.selectLecture(lvLecList, lectureAdapter);
+
+        lvLecList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent it = new Intent(getApplicationContext(), LectureDetailActivity.class);
+                it.putExtra("path", sp.getString("picUri",""));
+                it.putExtra("id", sp.getString("id", ""));
+                it.putExtra("title", lectureAdapter.lItem.get(position).getLecTitle());
+                it.putExtra("object", lectureAdapter.lItem.get(position).getLecObject());
+                it.putExtra("explain", lectureAdapter.lItem.get(position).getLecExplain());
+                startActivity(it);
+            }
+        });
     }
 
     Button.OnClickListener btnClickListener = new View.OnClickListener() {
@@ -93,9 +108,12 @@ public class LectureManageActivity extends AppCompatActivity {
         public void onClick(View view) {
             switch (view.getId()){
                 case R.id.btnReset :
+                    // 강의등록을 위해 edittext를 작성하던 부분을 모두 초기화해주는 부분입니다.
                     EditTextReset();
                     break;
                 case R.id.btnEnroll :
+                    // 강의 등록 버튼을 클릭했을 경우 서버로 데이터를 보내주는 부분입니다.
+                    // 강의 등록한 id, 강의제목, 강의목표, 강의설명, 시간을 저장할 것입니다.
                     Date d = new Date(System.currentTimeMillis());
                     SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd/HH/mm/ss");
 
@@ -209,9 +227,12 @@ public class LectureManageActivity extends AppCompatActivity {
             if(result.equals("EnrollSuccess")){
                 dismissKeyboard(LectureManageActivity.this);
 
+                // 강의등록이 완료되면 SQLite에도 저장해줍니다.
+                // 등록했던 강의가 존재한다면 강의관리에 들어왔을 때 저장된 내용을 불러오도록 하기위해 저장합니다.
                 dbHelper = new DBHelper(LectureManageActivity.this);
                 dbHelper.insertLecture(lecTitle, lecObject, lecExplain, lecTime);
 
+                // 저장에 성공하면 Edittext에 썻던 내용을 지워줍니다.
                 EditTextReset();
 
                 Lecture lecture = new Lecture(lecTitle, lecObject, lecExplain, lecTime);

@@ -61,6 +61,10 @@ import java.util.Set;
  * Created by kimhj on 2018-02-10.
  */
 
+// WebRTC를 이용하여 화상전화를 할 때 뜨는 화면입니다.
+// 다음 두 경우 이 화면이 열리게 됩니다.
+// (1) 학생이 LectureDetailActivity에서 상담하기 버튼을 클릭했을 경우
+// (2) 선생님이 ReceiveSignalActivity에서 받기 버튼을 클릭했을 경우
 public class CallActivity extends AppCompatActivity implements AppRTCClient.SignalingEvents, PeerConnectionClient.PeerConnectionEvents, CallActivity_Call.OnCallEvents {
 
     public static final String EXTRA_ROOMID = "com.example.theteacher.ROOMID";
@@ -175,6 +179,7 @@ public class CallActivity extends AppCompatActivity implements AppRTCClient.Sign
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // 이 화면이 타이틀바를 사용하지 않고 풀 스크린을 사용하겠다고 설정값을 바꿔주는 부분입니다.
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
                 | WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD | WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
@@ -182,16 +187,21 @@ public class CallActivity extends AppCompatActivity implements AppRTCClient.Sign
         getWindow().getDecorView().setSystemUiVisibility(getSystemUiVisibility());
         setContentView(R.layout.video_call);
 
+        // WebRTC 연결에 사용되는 초기 셋팅값입니다.
+        // iceConnected는 상대방과 연결될 경우 true로 바뀝니다.
         iceConnected = false;
         signalingParameters = null;
 
-        // Create UI controls.
+        // 처음 이 화면이 실행될 때
+        // fullscreenRenderer는 자신 폰 카메라를 보여주고 pipRenderer는 화면에 뜨지 않습니다.
+        // 상대방과 연결될 경우 기본적으로 fullscreenRenderer는 상대방의 화면을, pipRenderer는 내 화면을 띄웁니다.
+        // pipRenderer를 클릭할 경우 두 화면에서 띄워주는 영상이 바뀝니다.
         pipRenderer = (SurfaceViewRenderer) findViewById(R.id.pip_video_view);
         fullscreenRenderer = (SurfaceViewRenderer) findViewById(R.id.fullscreen_video_view);
         callFragment = new CallActivity_Call();
         hudFragment = new CallActivity_Hud();
 
-        // Show/hide call control fragment on view click.
+        // 밑에 종료, 음소거와 같은 버튼들을 화면에서 보이지 않게 해줍니다.
         View.OnClickListener listener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -199,7 +209,8 @@ public class CallActivity extends AppCompatActivity implements AppRTCClient.Sign
             }
         };
 
-        // Swap feeds on pip view click.
+        // pipRenderer를 클릭할 경우 화면에서 보이는 영상이 바뀌는 부분입니다.
+        // 초기 값은 fullscreenRenderer에 상대방 화면, pipRenderer에 내 화면입니다.
         pipRenderer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -218,7 +229,7 @@ public class CallActivity extends AppCompatActivity implements AppRTCClient.Sign
         pipRenderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
         String saveRemoteVideoToFile = intent.getStringExtra(EXTRA_SAVE_REMOTE_VIDEO_TO_FILE);
 
-        // When saveRemoteVideoToFile is set we save the video from the remote to a file.
+        // 통화 내용을 저장하겠다고 설정하는 경우 작동하는 부분입니다.
         if (saveRemoteVideoToFile != null) {
             int videoOutWidth = intent.getIntExtra(EXTRA_SAVE_REMOTE_VIDEO_TO_FILE_WIDTH, 0);
             int videoOutHeight = intent.getIntExtra(EXTRA_SAVE_REMOTE_VIDEO_TO_FILE_HEIGHT, 0);
@@ -240,7 +251,8 @@ public class CallActivity extends AppCompatActivity implements AppRTCClient.Sign
         // Start with local feed in fullscreen and swap it to the pip when the call is connected.
         setSwappedFeeds(true /* isSwappedFeeds */);
 
-        // Check for mandatory permissions.
+        // 오디오, 인터넷, 카메라 권한을 체크하는 부분입니다.
+        // 권한을 허락하지 않았을 경우 종료됩니다.
         for (String permission : MANDATORY_PERMISSIONS) {
             if (checkCallingOrSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
                 logAndToast("Permission " + permission + " is not granted");
@@ -290,6 +302,7 @@ public class CallActivity extends AppCompatActivity implements AppRTCClient.Sign
                     intent.getIntExtra(EXTRA_MAX_RETRANSMITS, -1), intent.getStringExtra(EXTRA_PROTOCOL),
                     intent.getBooleanExtra(EXTRA_NEGOTIATED, false), intent.getIntExtra(EXTRA_ID, -1));
         }
+        // 연결을 위해 PeerConnectionParameters 값을 설정하는 부분입니다.
         peerConnectionParameters =
                 new PeerConnectionParameters(intent.getBooleanExtra(EXTRA_VIDEO_CALL, true), loopback,
                         tracing, videoWidth, videoHeight, intent.getIntExtra(EXTRA_VIDEO_FPS, 0),

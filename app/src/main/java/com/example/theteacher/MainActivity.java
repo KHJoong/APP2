@@ -86,13 +86,16 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // 메뉴를 클릭했을 경우 어떤 화면을 띄울지 메뉴 리스트의 position에 따라 결정됩니다.
     private void displayView(int position) {
         Fragment fragment = null;
         switch (position) {
             case 0:
+                // 홈 화면을 띄워주는 Fragment입니다.
                 fragment = new MainActivity_Home();
                 break;
             case 1:
+                // 설정 화면을 띄워주는 Fragment입니다.
                 fragment = new MainActivity_Setting();
                 break;
             default:
@@ -145,6 +148,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // 왼쪽 위, 슬라이딩 메뉴 버튼을 클릭했을 때의 액션을 정의하는 함수입니다.
+    // 액션 바의 이름의 기본값은 Home입니다.
+    // 메뉴를 클릭했을 때 그 메뉴의 이름으로 액션 바의 이름을 바꿔줍니다.
     private void setDrawer() {
         drawerToggle = new ActionBarDrawerToggle(this, dlSlidingMenu, R.string.app_name, R.string.app_name) {
             @ Override
@@ -176,7 +181,8 @@ public class MainActivity extends AppCompatActivity {
 
     @ Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // 토글이 이벤트를 소비했다면 이벤트를 전파시키지 않고 종결한다.
+        // 토글이 이벤트를 소비했다면 이벤트를 전파시키지 않고 종결합니다.
+        // 이 부분이 있어야 메뉴를 클릭했을 때 정상적으로 작동합니다.
         if (drawerToggle.onOptionsItemSelected(item)) {
             return true;
         } else {

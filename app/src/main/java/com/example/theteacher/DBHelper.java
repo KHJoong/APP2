@@ -42,7 +42,9 @@ public class DBHelper extends SQLiteOpenHelper{
         db.execSQL("INSERT INTO lecture VALUES('"+ti+"', '"+obj+"', '"+exp+"', '"+tim+"');");
     }
 
-    // 강의 설명
+    // 기존에 저장해둔 강의를 불러와서 listview에 띄워주는 부분입니다.
+    // LectureManageActivity에는 일단 제목만 보이지만 Lecture 객체를 만들때는 값을 모두 넣어서 만듭니다.
+    // 후에 listview 아이템을 클릭했을 때의 액션을 만들어야 할 경우 사용할 예정입니다.
     public void selectLecture(ListView lv, Lecture_Adapter la){
         SQLiteDatabase db = getWritableDatabase();
 

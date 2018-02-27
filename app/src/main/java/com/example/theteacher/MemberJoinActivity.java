@@ -90,6 +90,7 @@ public class MemberJoinActivity extends AppCompatActivity {
                 pwd = etPwd.getText().toString();
                 if(pwd.equals(etPwdCheck.getText().toString())){
                     tvPwdAlert.setText("입력하신 비밀번호가 일치합니다.");
+                    tvPwdAlert.setTextColor(Color.GRAY);
                     pwdCheck = 1;
                 } else {
                     tvPwdAlert.setText("위의 비밀번호와 같지 않습니다.");

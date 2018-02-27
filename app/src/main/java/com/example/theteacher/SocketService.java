@@ -20,6 +20,7 @@ import java.nio.charset.Charset;
  * Created by kimhj on 2018-02-10.
  */
 
+// 상담전화의 Signaling을 위해 서버에 소켓연결을 합니다.
 public class SocketService extends Service {
 
     String ip = "115.71.232.230"; // IP
@@ -89,6 +90,9 @@ public class SocketService extends Service {
 
     }
 
+    // 서버에서 오는 메시지를 받아주는 Thread입니다.
+    // 상담전화를 요청한 유저의 id를 CallActivity 화면에 띄웁니다.
+    // 받은 roomNum을 이용하여 학생의 생성한 방에 들어가 통화를 진행합니다.
     class DataReceiver extends Thread{
 
         public void run(){

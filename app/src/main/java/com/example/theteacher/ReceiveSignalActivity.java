@@ -36,6 +36,9 @@ import java.util.Random;
  * Created by kimhj on 2018-02-10.
  */
 
+// 이것은 학생이 LectureDetailActivity에서 상담전화 버튼을 클릭할 경우
+// 선생님이 상담전화를 받을지 끊을지 결정할 수 있도록 해주는 화면입니다.
+// 받겠다고 선택하는 경우 CallActivity로 연결됩니다.
 public class ReceiveSignalActivity extends AppCompatActivity {
 
     TextView tvId;
