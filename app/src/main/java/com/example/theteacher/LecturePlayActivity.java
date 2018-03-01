@@ -4,18 +4,25 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.ImageFormat;
 import android.graphics.Matrix;
+import android.graphics.Rect;
+import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Base64;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.ImageButton;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.pedro.rtplibrary.rtsp.RtspCamera1;
@@ -25,14 +32,20 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -44,6 +57,7 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
 
     Camera camera;
 
+    RelativeLayout rlLecPlayContainer;
     // 카메라 프리뷰를 띄워줄, 스트리밍 될 영상을 띄워줄 뷰입니다.
     SurfaceView svLecScreen;
     SurfaceHolder svLecScreenHolder;
@@ -70,14 +84,24 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
     // 강의중이면 db에 등록, 아니면 삭제합니다.
     UpdateLecState updateLecState;
 
+    // surfaceView에서 capture된 bitmap이 담길 변수입니다.
+    // UploadThumbNail AsyncTask에서 업로드할 때 base64 인코딩되어 전송됩니다.
+    Bitmap sendBitmap;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // 상태바 없애고, 화면 켜져있는 상태 유지하도록 설정하기
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON, WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
         setContentView(R.layout.lecture_play);
 
         check = 1;
 
+        rlLecPlayContainer = (RelativeLayout) findViewById(R.id.rlLecPlayContainer);
         svLecScreen = (SurfaceView) findViewById(R.id.svLecScreen);
         btnLecStart = (ImageButton) findViewById(R.id.btnLecStart);
 
@@ -129,6 +153,8 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
                 case R.id.btnLecStart :
                     if(check==1){
                         // 서버로 전송할 데이터를 JSON 형식으로 묶어주는 부분입니다.
+                        // 요청한 사람이 누군지 알기 위한 id와 시작한 강의가 뭔지 알려줄 title을 담습니다.
+                        // state는 강의 시작인지 정지인지 구분하기 위한 변수입니다.
                         JSONObject jo = new JSONObject();
                         try {
                             jo.put("id", sp.getString("id",""));
@@ -168,37 +194,25 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
             if(uploadThumbNail!=null && !uploadThumbNail.isInterrupted()){
                 uploadThumbNail.interrupt();
             }
-            rtspCamera1.stopStream();
             super.onBackPressed();
         } else {
             Toast.makeText(getApplicationContext(), "강의를 먼저 종료해주세요.", Toast.LENGTH_SHORT).show();
         }
     }
 
-    // 현재 방송중인 화면(SurfaceView)을 Bitmap으로 바꾸는 함수입니다.
-    // 서버로 전송하여 ThumbNail을 등록하는데 사용됩니다.
-    public Bitmap surfaceToBitmap(View view){
-        // 스크린샷 찍어서 Bitmap을 뽑아내는 부분입니다.
-        Bitmap getBitmap = Bitmap.createBitmap(view.getWidth(), view.getHeight(), Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(getBitmap);
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
 
-        // SurfaceView는 원래 view 중에서 제일 아래에서 진행됩니다.
-        // 따라서 setZOrderOnTop를 이용하여 view 최상단으로 올린 후
-        // 그것을 canvas(bitmap)에 저장한 후 다시 view의 원래 자리로 돌려줍니다.
-        // 이 부분이 없으면 surfaceview에서 screenshot을 찍을 때 검은 화면만 출력됩니다.
-        SurfaceView sv = (SurfaceView) view;
-        sv.setZOrderOnTop(true);
-        sv.draw(canvas);
-        sv.setZOrderOnTop(false);
-
-        // 뽑아낸 Bitmap을 Resize하는 부분입니다.
-//        Matrix mat = new Matrix();
-//        mat.postScale((float) 0.1, (float) 0.1);
-//        Bitmap returnBitmap = Bitmap.createBitmap(getBitmap, 0, 0, view.getWidth(), view.getHeight(), mat, false);
-//        getBitmap.recycle();
-
-        // Resize된 Bitmap을 반환합니다.
-        return getBitmap;
+    // SurfaceView에서 캡쳐한 bitmap을 Server(PHP)로 전달하기 위해 Base64 인코딩을합니다.
+    // Base64 인코딩은 한글을 리턴합니다.
+    public String ConvertBitmapToString(Bitmap bit){
+        String encodedImg = "";
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bit.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+        encodedImg = Base64.encodeToString(baos.toByteArray(), Base64.NO_WRAP);
+        return encodedImg;
     }
 
     // 아래 세 개는 SurfaceView를 사용하기 위해 Override되는 부분입니다.
@@ -206,6 +220,20 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         camera = Camera.open();
+        camera.setPreviewCallback(new Camera.PreviewCallback() {
+            @Override
+            public void onPreviewFrame(byte[] data, Camera cam) {
+                //SurfaceView에 띄워진 Preview를 capture하는 부분입니다.
+                YuvImage img = new YuvImage(data, ImageFormat.NV21, svLecScreen.getWidth(), svLecScreen.getHeight(), null);
+
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                Rect area = new Rect(0, 0, svLecScreen.getWidth(), svLecScreen.getHeight());
+
+                img.compressToJpeg(area, 70, baos);
+                Bitmap tmpBitmap = BitmapFactory.decodeByteArray(baos.toByteArray(), 0, baos.size());
+                sendBitmap = Bitmap.createScaledBitmap(tmpBitmap, 120,140, false);
+            }
+        });
     }
 
     @Override
@@ -222,12 +250,13 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
     public void surfaceDestroyed(SurfaceHolder holder) {
         if(camera!=null){
             camera.stopPreview();
+            camera.setPreviewCallback(null);
             camera.release();
             camera = null;
         }
     }
 
-    // DB에 Lecture 상태를 업데이트 하기 위한 AsyncTask입니다.
+    // Server의 DB에 Lecture 상태를 업데이트 하기 위한 AsyncTask입니다.
     // 강의중일 경우 DB에 등록하고
     // 강의가 끝날 경우 DB에서 삭제합니다.
     public class UpdateLecState extends AsyncTask<String, String, String>{
@@ -297,8 +326,7 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
                 btnLecStart.setImageResource(R.drawable.rec_stop);
                 // 썸네일을 만들어서 서버로 올리는 역할을 하는 쓰레드입니다.
                 // 10초에 한 번씩 업로드합니다.
-                Bitmap bt = surfaceToBitmap(svLecScreen);
-                uploadThumbNail = new UploadThumbNail(bt);
+                uploadThumbNail = new UploadThumbNail();
                 uploadThumbNail.start();
                 Toast.makeText(getApplicationContext(), "강의를 시작합니다.", Toast.LENGTH_SHORT).show();
             } else if(result.equals("updateFail")){
@@ -329,15 +357,7 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
     // 전송된 Bitmap은 다른 유저가 볼 수 있는 ThumbNail로 쓰입니다.
     public class UploadThumbNail extends Thread {
 
-        Bitmap sendedBitmap;
-
-        String lineEnd = "\r\n";
-        String twoHypens = "--";
-        String boundary = "*****";
-
-        public UploadThumbNail(Bitmap bm) {
-            sendedBitmap = bm;
-        }
+        JSONObject jsonObject = new JSONObject();
 
         public void run() {
             while (true) {
@@ -359,33 +379,14 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
                         if (!TextUtils.isEmpty(sessionID)) {
                             conn.setRequestProperty("cookie", sessionID);
                         }
-                        conn.setRequestProperty("Connection", "Keep-Alive");
-                        conn.setRequestProperty("Cache-Control", "no-cache");
-                        conn.setRequestProperty("ENCTYPE", "multipart/form-data");
-                        conn.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
 
-                        DataOutputStream dos = new DataOutputStream(conn.getOutputStream());
+                        conn.setRequestProperty("Accept", "application/json");
+                        conn.setRequestProperty("Content-type", "application/json");
 
-                        dos.writeBytes(twoHypens + boundary + lineEnd);
-                        dos.writeBytes("Content-Disposition: form-data; name=\"uploaded_image\"" + lineEnd);
-                        dos.writeBytes(lineEnd);
-                        dos.writeBytes("uploaded_thumbnail");
-                        dos.writeBytes(lineEnd);
-
-                        dos.writeBytes(twoHypens + boundary + lineEnd);
-                        dos.writeBytes("Content-Disposition: form-data; name=\"uploaded_file\"; filename=\"" + sp.getString("id", "") + ".jpg" + "\"" + lineEnd);
-                        dos.writeBytes(lineEnd);
-
-                        byte[] pixels = new byte[sendedBitmap.getWidth() * sendedBitmap.getHeight()];
-                        for (int i = 0; i < sendedBitmap.getWidth(); ++i) {
-                            for (int j = 0; j < sendedBitmap.getHeight(); ++j) {
-                                pixels[i + j] = (byte) ((sendedBitmap.getPixel(i, j) & 0x80) >> 7);
-                            }
-                        }
-                        dos.write(pixels);
-
-                        dos.writeBytes(lineEnd);
-                        dos.writeBytes(twoHypens + boundary + twoHypens + lineEnd);
+                        OutputStream os = conn.getOutputStream();
+                        // JSONObject에 capture한 bitmap을 base64 인코딩하여 String으로 변환한 후 담습니다.
+                        os.write(jsonObject.put("image", ConvertBitmapToString(sendBitmap)).toString().getBytes());
+                        os.flush();
 
                         int responseStatusCode = conn.getResponseCode();
 
@@ -405,8 +406,7 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
                         }
                         String result = builder.toString();
 
-                        dos.flush();
-                        dos.close();
+                        os.close();
 
                         Log.i("LecturePlayAct:", "uploadThumbNail:" + result);
                     } catch (Exception e) {
