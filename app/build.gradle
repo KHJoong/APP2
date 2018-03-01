@@ -3,9 +3,11 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 27
 
+    // ndk 사용을 위해 추가한 부분입니다.
+    // lib 폴더에 있는 파일을 jniLibs에 추가해주는 역할을 하는 부분입니다.
     sourceSets.main {
         jniLibs.srcDir 'libs'
-        jni.srcDirs = [] //disable automatic ndk-build call
+        jni.srcDirs = []
     }
 
     defaultConfig {

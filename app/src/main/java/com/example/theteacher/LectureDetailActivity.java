@@ -150,6 +150,7 @@ public class LectureDetailActivity extends AppCompatActivity {
                     break;
                 case R.id.btnLectureReady :
                     Intent it = new Intent(getApplicationContext(), LecturePlayActivity.class);
+                    it.putExtra("title", title);
                     startActivity(it);
                     break;
             }

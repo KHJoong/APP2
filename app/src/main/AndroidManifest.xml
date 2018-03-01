@@ -75,7 +75,8 @@
         </activity>
 
         <!--선생님이 자신의 강의 세부 내용을 보는 곳(LectureDetailActivity)에서 강의 준비하기를 클릭하면 열리는 화면입니다.-->
-        <activity android:name=".LecturePlayActivity" android:theme="@style/Theme.AppCompat.NoActionBar">
+        <activity android:name=".LecturePlayActivity" android:screenOrientation="landscape"
+            android:theme="@style/Theme.AppCompat.NoActionBar">
         </activity>
 
         <!--ProfileModifyActivity에서 카메라, 갤러리, 크롭을 위해 사용하는 provider입니다.-->

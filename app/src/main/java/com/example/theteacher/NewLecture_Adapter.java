@@ -72,7 +72,6 @@ public class NewLecture_Adapter extends BaseAdapter {
     }
 
     // Listview에 아이템을 추가합니다.
-    // 가장 마지막에 추가되는 아이템이 맨 위로 올라가도록 0번에 추가합니다.
     public void addItem(Lecture lec){
         nlItem.add(lec);
     }

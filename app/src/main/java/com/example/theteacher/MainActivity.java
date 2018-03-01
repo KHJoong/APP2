@@ -49,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
     public MainActivity() {
         Collections.addAll(menuList, new String[]{
                 "Home",
+                "NowPlaying",
                 "Setting"
         });
     }
@@ -59,8 +60,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.main);
 
         // Signaling 서버와의 소켓 연결을 위한 SocketService 실행 --------------------------------------
-        Intent socketIntent = new Intent(getApplicationContext(), SocketService.class);
-        startService(socketIntent);
+//        Intent socketIntent = new Intent(getApplicationContext(), SocketService.class);
+//        startService(socketIntent);
         // -----------------------------------------------------------------------------------------
 
         dlSlidingMenu = (DrawerLayout)findViewById(R.id.dlSlidingMenu);
@@ -95,6 +96,9 @@ public class MainActivity extends AppCompatActivity {
                 fragment = new MainActivity_Home();
                 break;
             case 1:
+                fragment = new MainActivity_NowPlaying();
+                break;
+            case 2:
                 // 설정 화면을 띄워주는 Fragment입니다.
                 fragment = new MainActivity_Setting();
                 break;

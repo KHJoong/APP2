@@ -1,21 +1,19 @@
 package com.example.theteacher;
 
+import android.content.DialogInterface;
+import android.content.SharedPreferences;
+import android.support.v7.app.AlertDialog;
 import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
-import android.support.v7.app.AlertDialog;
+
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
-import android.widget.AdapterView;
 import android.widget.ListView;
 
 import org.json.JSONArray;
@@ -29,76 +27,88 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
- * Created by kimhj on 2018-01-25.
+ * Created by kimhj on 2018-03-01.
  */
 
-public class MainActivity_Home extends Fragment implements AbsListView.OnScrollListener{
-
-    ListView lvNewLecture;
-    NewLecture_Adapter newLectureAdapter;
+public class MainActivity_NowPlaying extends Fragment implements AbsListView.OnScrollListener{
 
     SharedPreferences sp;
 
-    // 새로운 강의를 불러올 때 페이징하여 불러오기 위해 사용하는 변수입니다.
+    ListView lvNowPlaying;
+    NowPlaying_Adapter nowPlayingAdapter;
+
+    // 지금 진행중인 강의를 불러올 때 페이징하여 불러오기 위해 사용하는 변수입니다.
     // Activity가 실행될(onCreate) 때 0으로 시작해서 새로운 강의 목록을 요청할 때마다 1씩 증가합니다.
     // 보낼 때 10를 곱해서 보닙니다.(앞에 받아온 개수만큼 offset 할 수 있도록)
     int pagingNum;
     // listview position에 따라 다음 페이지 아이템들을 요청해야 하는지 아닌지 결정해주는 변수입니다.
     // 요청중일때는 false, 요청이 끝나면 true로 설정됩니다.(1번만 요청하도록 설정하기 위해서 사용하는 변수입니다.)
-    // 따라서 true일 때만 요청을 보낼 수 있습니다.
+    // 따라서 기본값은 false고, true일 때만 요청을 보낼 수 있습니다.
     boolean isPaging;
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-
-        View view = inflater.inflate(R.layout.main_home, container, false);
+        View view = inflater.inflate(R.layout.main_nowplaying, container, false);
 
         pagingNum = 0;
         isPaging = false;
 
-        lvNewLecture = (ListView) view.findViewById(R.id.lvNewLecture);
-        newLectureAdapter = new NewLecture_Adapter(getActivity());
+        lvNowPlaying = (ListView) view.findViewById(R.id.lvNowPlaying);
+        nowPlayingAdapter = new NowPlaying_Adapter(getActivity());
 
-        lvNewLecture.setAdapter(newLectureAdapter);
-        lvNewLecture.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Intent showDetailIntent = new Intent(getActivity(), LectureDetailActivity.class);
-                showDetailIntent.putExtra("path", newLectureAdapter.nlItem.get(i).getTeacherPicUrl());
-                showDetailIntent.putExtra("id", newLectureAdapter.nlItem.get(i).getTeacherId());
-                showDetailIntent.putExtra("title", newLectureAdapter.nlItem.get(i).getLecTitle());
-                showDetailIntent.putExtra("object", newLectureAdapter.nlItem.get(i).getLecObject());
-                showDetailIntent.putExtra("explain", newLectureAdapter.nlItem.get(i).getLecExplain());
-                startActivity(showDetailIntent);
-            }
-        });
+        lvNowPlaying.setAdapter(nowPlayingAdapter);
 
-        startGetNewLecture(); // 성공적으로 목록을 받아왔을 경우 isPaging을 true로 설정해주는 부분이 getNewLecture Asynctask에 있습니다.
+        startNowPlayingLecture(); // 성공적으로 목록을 받아왔을 경우 isPaging을 true로 설정해주는 부분이 getNowPlayingLecture Asynctask에 있습니다.
 
         return view;
     }
 
     @Override
-    public void onScrollStateChanged(AbsListView absListView, int i) {
+    public void onScrollStateChanged(AbsListView view, int scrollState) {
 
     }
 
     @Override
-    public void onScroll(AbsListView absListView, int firstvisibleitem, int visibleitemcount, int totalitemcount) {
+    public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
         // 현재 listview에서 확인하지 않은 아이템이 5개 이하가되면 다음 목록을 준비해둘 수 있도록 합니다.
-        int count = totalitemcount - 5;
-        if(firstvisibleitem>=count && isPaging == true){
-            startGetNewLecture();
+        int count = totalItemCount - 5;
+        if(firstVisibleItem>=count && isPaging == true){
+            startNowPlayingLecture();
             // isPaging이 true이기 때문에 다음 페이지를 요청하는 함수를 실행한 후 완료될 때까지 재요청하지 않도록 isPaging 값을 false로 바꿔둡니다.
             isPaging = false;
         }
     }
 
+    // 강의가 시작한지 몇 분이 지났는지 계산해주는 함수입니다.
+    // 현재 시간을 구하고 서버에서 받아온 각 강의의 시작 시간과의 차이를 계산합니다.
+    // 리턴값은 long이지만 int > String의 변환을 거쳐 TextView에 등록됩니다.
+    public long getDiffTime(String getday){
+        long diff = 0;
+        long min = 0;
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy/MM/dd/HH/mm/ss");
+        try {
+            Date tdate = new Date(System.currentTimeMillis());
+//            String tmpdate = simpleDateFormat.format(date);
+//
+//            Date tdate = simpleDateFormat.parse(tmpdate);
+            Date gdate = simpleDateFormat.parse(getday);
+            diff = tdate.getTime()-gdate.getTime();
+            min = diff/1000/60;
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return min;
+    }
+
     // 서버에 새로운 강의 목록을 요청하기 위해서 id와 pagingNum을 JSONObject에 담는 역할을 하는 함수입니다.
     // JSONObject에 담은 후 getNewLecture() 실행하여 요청까지 하는 함수입니다.
-    public void startGetNewLecture(){
+    public void startNowPlayingLecture(){
         // 서버로 보낼 id를 JSON에 담는 부분입니다.
         sp = getActivity().getSharedPreferences("profile", Context.MODE_PRIVATE);
         JSONObject jo = new JSONObject();
@@ -109,16 +119,16 @@ public class MainActivity_Home extends Fragment implements AbsListView.OnScrollL
             e.printStackTrace();
         }
 
-        getNewLecture gnl = new getNewLecture(getActivity().getApplicationContext(), lvNewLecture, newLectureAdapter);
-        gnl.execute(jo.toString());
+        getNowPlayingLecture gnpl = new getNowPlayingLecture(getActivity().getApplicationContext(), lvNowPlaying, nowPlayingAdapter);
+        gnpl.execute(jo.toString());
     }
 
-    // 서버에 새로운 강의 목록을 실질적으로 요청하는 AsyncTask입니다.
-    public class getNewLecture extends AsyncTask<String, String, String>{
+    // 서버에서 현재 진행중인 강의 목록을 실질적으로 요청하는 AsyncTask입니다.
+    public class getNowPlayingLecture extends AsyncTask<String, String, String> {
 
-        Context gnlContext;
-        ListView lvNewLec;
-        NewLecture_Adapter nlAdap;
+        Context gnplContext;
+        ListView lvNowPlayingLec;
+        NowPlaying_Adapter npAdapter;
         // AsyncTask가 진행되는 동안 돌아갈 ProgressDialog입니다.
         ProgressDialog proDialog;
         // 서버에서 강의 불러오는 것이 실패하면 띄워줄 AlertDialog입니다.
@@ -127,14 +137,13 @@ public class MainActivity_Home extends Fragment implements AbsListView.OnScrollL
         String path;
         String id;
         String title;
-        String object;
-        String explain;
         String lasttime;
+        int difftime;
 
-        getNewLecture(Context context, ListView lv, NewLecture_Adapter nla){
-            gnlContext = context;
-            lvNewLec = lv;
-            nlAdap = nla;
+        getNowPlayingLecture(Context context, ListView lv, NowPlaying_Adapter npa){
+            gnplContext = context;
+            lvNowPlayingLec = lv;
+            npAdapter = npa;
 
             alertDialogBuilder = new AlertDialog.Builder(context);
 
@@ -147,7 +156,7 @@ public class MainActivity_Home extends Fragment implements AbsListView.OnScrollL
         protected String doInBackground(String... params) {
             String sendData = params[0];
             try{
-                URL url = new URL("http://www.o-ddang.com/theteacher/newLectureList.php");
+                URL url = new URL("http://www.o-ddang.com/theteacher/nowPlayingLecture.php");
                 HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
 
                 httpURLConnection.setDefaultUseCaches(false);
@@ -195,36 +204,26 @@ public class MainActivity_Home extends Fragment implements AbsListView.OnScrollL
                     for(int n=0; n<array.length(); n++){
                         String joLec = array.getString(n);
                         JSONObject jo = new JSONObject(joLec);
-
-                        if(!TextUtils.isEmpty(jo.getString("path"))){
-                            path = "http://www.o-ddang.com/theteacher/" +jo.getString("path");
-                        } else {
-                            path = "http://www.o-ddang.com/theteacher/base_profile_img.png";
-                        }
                         if(!TextUtils.isEmpty(jo.getString("id"))){
                             id = jo.getString("id");
+                            path = "http://www.o-ddang.com/theteacher/uploaded_thumbnail/"+id+".jpg";
                         }
                         if(!TextUtils.isEmpty(jo.getString("title"))){
                             title = jo.getString("title");
                         }
-                        if(!TextUtils.isEmpty(jo.getString("object"))){
-                            object = jo.getString("object");
-                        }
-                        if(!TextUtils.isEmpty(jo.getString("explain"))){
-                            explain = jo.getString("explain");
-                        }
                         if(!TextUtils.isEmpty(jo.getString("lasttime"))){
                             lasttime = jo.getString("lasttime");
+                            difftime = (int)(long)getDiffTime(lasttime);
                         }
-                        Lecture lecture = new Lecture(path, id, title, object, explain, lasttime);
-                        nlAdap.addItem(lecture);
+                        Lecture lecture = new Lecture(path, id, title, String.valueOf(difftime),1);
+                        npAdapter.addItem(lecture);
                     }
-                    nlAdap.notifyDataSetChanged();
+                    npAdapter.notifyDataSetChanged();
 
                     // 리스너가 한 번만 등록되도록 설정해주는 부분입니다.
                     // 처음에만 등록하면 되기 떄문에 pagingNum이 0일때만 한 번 실행되도록 합니다.
                     if(pagingNum==0){
-                        lvNewLec.setOnScrollListener(MainActivity_Home.this);
+                        lvNowPlayingLec.setOnScrollListener(MainActivity_NowPlaying.this);
                     }
 
                     pagingNum++;
@@ -243,6 +242,5 @@ public class MainActivity_Home extends Fragment implements AbsListView.OnScrollL
             }
         }
     }
-
 
 }
