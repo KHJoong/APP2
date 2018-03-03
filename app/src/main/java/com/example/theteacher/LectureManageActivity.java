@@ -92,7 +92,7 @@ public class LectureManageActivity extends AppCompatActivity {
                 // 내가 등록한 강의 목록에서 선택한 강의의 세부 사항을 확인하는 화면으로 넘어가는 부분입니다.
                 // 세부사항을 확인하는 부분에서 강의 시작을 할 수 있습니다.
                 Intent it = new Intent(getApplicationContext(), LectureDetailActivity.class);
-                it.putExtra("path", sp.getString("picUri",""));
+                it.putExtra("path", sp.getString("picUrl",""));
                 it.putExtra("id", sp.getString("id", ""));
                 it.putExtra("title", lectureAdapter.lItem.get(position).getLecTitle());
                 it.putExtra("object", lectureAdapter.lItem.get(position).getLecObject());

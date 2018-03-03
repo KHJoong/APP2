@@ -15,7 +15,6 @@ import android.widget.VideoView;
 public class LectureViewActivity extends AppCompatActivity {
 
     VideoView vvLecScreen;
-    MediaController mediaController;
 
     String lecUrl;
 
@@ -31,6 +30,7 @@ public class LectureViewActivity extends AppCompatActivity {
 
         vvLecScreen = (VideoView)findViewById(R.id.vvLecScreen);
 
+        // MainActivity_NowPlaying, LectureDetailActivity에서 Intent로 받은 id를 rtsp url의 구분자로 사용합니다.
         Intent it = getIntent();
         lecUrl = "rtsp://115.71.232.230:81/theteacher/"+it.getStringExtra("teacherId");
 
