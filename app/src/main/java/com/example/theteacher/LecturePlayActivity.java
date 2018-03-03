@@ -5,9 +5,7 @@ import android.content.SharedPreferences;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
 import android.graphics.ImageFormat;
-import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
@@ -22,30 +20,26 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
-import com.pedro.rtplibrary.rtsp.RtspCamera1;
-import com.pedro.rtsp.utils.ConnectCheckerRtsp;
+import com.example.theteacher.NeedToStreaming.encoder.input.video.Camera1ApiManager;
+import com.example.theteacher.NeedToStreaming.rtplibrary.rtsp.RtspCamera1;
+import com.example.theteacher.NeedToStreaming.rtsp.utils.ConnectCheckerRtsp;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLEncoder;
-import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -60,7 +54,7 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
     RelativeLayout rlLecPlayContainer;
     // 카메라 프리뷰를 띄워줄, 스트리밍 될 영상을 띄워줄 뷰입니다.
     SurfaceView svLecScreen;
-    SurfaceHolder svLecScreenHolder;
+    SurfaceHolder shLecScreenHolder;
     // 스트리밍을 시작하거나 정지하기 위해 있는 버튼입니다.
     ImageButton btnLecStart;
 
@@ -69,6 +63,10 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
     int check;
     String title;
 
+    // rtmp-rtsp-stream-client-java 라이브러리(Apache 2.0) 사용합니다.
+    // 소스코드 수정을 위해 필요한 부분만 가져와서 사용했습니다.
+    // 다음은 rtsp 시작을 위해 필요한 변수입니다.
+    // RtspCamera1로 stream을 시작합니다. 이때 ConnectCheckerRtsp가 필요합니다.
     RtspCamera1 rtspCamera1;
     ConnectCheckerRtsp connectCheckerRtsp;
 
@@ -86,8 +84,7 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
 
     // surfaceView에서 capture된 bitmap이 담길 변수입니다.
     // UploadThumbNail AsyncTask에서 업로드할 때 base64 인코딩되어 전송됩니다.
-    Bitmap sendBitmap;
-
+    public static Bitmap sendBitmap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -107,10 +104,12 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
 
         btnLecStart.setOnClickListener(btnClickListener);
 
-        svLecScreenHolder = svLecScreen.getHolder();
-        svLecScreenHolder.addCallback(this);
-        svLecScreenHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+        shLecScreenHolder = svLecScreen.getHolder();
+        shLecScreenHolder.addCallback(this);
+        shLecScreenHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 
+        // title은 시작한 강의가 뭔지 서버로 전송할 때 사용합니다.
+        // user의 id를 rtsp 경로 구분자로 사용합니다.
         Intent it = getIntent();
         title = it.getStringExtra("title");
         sp = getSharedPreferences("profile", MODE_PRIVATE);
@@ -203,6 +202,18 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if(camera!=null){
+            camera.stopPreview();
+            camera.setPreviewCallback(null);
+            camera.release();
+            camera = null;
+        }
+        if(Camera1ApiManager.camera!=null){
+            Camera1ApiManager.camera.stopPreview();
+            Camera1ApiManager.camera.setPreviewCallback(null);
+            Camera1ApiManager.camera.release();
+            Camera1ApiManager.camera = null;
+        }
     }
 
     // SurfaceView에서 캡쳐한 bitmap을 Server(PHP)로 전달하기 위해 Base64 인코딩을합니다.
@@ -215,31 +226,40 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
         return encodedImg;
     }
 
+    // 카메라 프리뷰가 실행될 때 자동 실행되는 함수입니다.
+    // 여기서 실질적으로 프리뷰되고 있는 화면을 bitmap에 담습니다.
+    // 이 액티비티에서 bitmap capture를 하려했었으나 지금은 쓰지 않습니다.
+    // Bitmap 추출은 다음 경로의 onPreviewFrame에서 진행됩니다.
+    // NeedToStreaming > encoder > input > video > Camera1ApiManager.class
+//    Camera.PreviewCallback previewCallback = new Camera.PreviewCallback() {
+//        @Override
+//        public void onPreviewFrame(byte[] data, Camera camera) {
+//            //SurfaceView에 띄워진 Preview를 capture하는 부분입니다.
+//            YuvImage img = new YuvImage(data, ImageFormat.NV21, svLecScreen.getWidth(), svLecScreen.getHeight(), null);
+//
+//            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//            Rect area = new Rect(0, 0, svLecScreen.getWidth(), svLecScreen.getHeight());
+//
+//            img.compressToJpeg(area, 70, baos);
+//            Bitmap tmpBitmap = BitmapFactory.decodeByteArray(baos.toByteArray(), 0, baos.size());
+//            sendBitmap = Bitmap.createScaledBitmap(tmpBitmap, 120,140, false);
+//        }
+//    };
+
     // 아래 세 개는 SurfaceView를 사용하기 위해 Override되는 부분입니다.
     // 카메라를 불러오고 프리뷰를 띄우거나, 프리뷰를 멈추는 역할을 하게 됩니다.
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         camera = Camera.open();
-        camera.setPreviewCallback(new Camera.PreviewCallback() {
-            @Override
-            public void onPreviewFrame(byte[] data, Camera cam) {
-                //SurfaceView에 띄워진 Preview를 capture하는 부분입니다.
-                YuvImage img = new YuvImage(data, ImageFormat.NV21, svLecScreen.getWidth(), svLecScreen.getHeight(), null);
-
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                Rect area = new Rect(0, 0, svLecScreen.getWidth(), svLecScreen.getHeight());
-
-                img.compressToJpeg(area, 70, baos);
-                Bitmap tmpBitmap = BitmapFactory.decodeByteArray(baos.toByteArray(), 0, baos.size());
-                sendBitmap = Bitmap.createScaledBitmap(tmpBitmap, 120,140, false);
-            }
-        });
     }
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
         try {
-            camera.setPreviewDisplay(svLecScreenHolder);
+            camera.stopPreview();
+            camera.setDisplayOrientation(90);
+
+            camera.setPreviewDisplay(shLecScreenHolder);
             camera.startPreview();
         } catch (IOException e) {
             e.printStackTrace();
@@ -259,6 +279,8 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
     // Server의 DB에 Lecture 상태를 업데이트 하기 위한 AsyncTask입니다.
     // 강의중일 경우 DB에 등록하고
     // 강의가 끝날 경우 DB에서 삭제합니다.
+    // 강의 시작 : user id, state="start", title엔 강의 제목, 강의를 시작한 시간을 json 형태로 묶어서 전달함
+    // 강의 종료 : user id, state="stop"을 json 형태로 묶어서 전달함
     public class UpdateLecState extends AsyncTask<String, String, String>{
 
         @Override
@@ -354,6 +376,8 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
     }
 
     // SurfaceView에서 추출한 Bitmap을 서버로 전송하는 쓰레드입니다.
+    // Bitmap 추출은 다음 경로의 onPreviewFrame에서 진행됩니다.
+    // NeedToStreaming > encoder > input > video > Camera1ApiManager.class
     // 전송된 Bitmap은 다른 유저가 볼 수 있는 ThumbNail로 쓰입니다.
     public class UploadThumbNail extends Thread {
 
@@ -364,7 +388,7 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
                 if (check == 1) {
                     break;
                 }
-                try {
+                if(sendBitmap != null){
                     String sessionID = sp.getString("sessionID", "");
                     try {
                         URL url = new URL("http://www.o-ddang.com/theteacher/uploadThumbNail.php");
@@ -409,12 +433,11 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
                         os.close();
 
                         Log.i("LecturePlayAct:", "uploadThumbNail:" + result);
+
+                        Thread.sleep(10000);
                     } catch (Exception e) {
                         Log.i("LecturePlayAct:", "uploadThumbNail:" + e.toString());
                     }
-                    Thread.sleep(10000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
                 }
             }
         }

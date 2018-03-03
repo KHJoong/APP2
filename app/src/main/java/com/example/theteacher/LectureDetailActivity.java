@@ -149,6 +149,9 @@ public class LectureDetailActivity extends AppCompatActivity {
                     connectToRoom(String.valueOf(reqRoomNum), false, false, false, 0);
                     break;
                 case R.id.btnLectureReady :
+                    // 이 버튼을 클릭하면 강의를 준비하는 화면으로 넘어갑니다.
+                    // 카메라를 이용하여 미리 보는 화면을 보여주고
+                    // 녹화 버튼을 클릭할 경우 강의를 시작. 정지할 수 있는 화면입니다.
                     Intent it = new Intent(getApplicationContext(), LecturePlayActivity.class);
                     it.putExtra("title", title);
                     startActivity(it);
@@ -163,6 +166,7 @@ public class LectureDetailActivity extends AppCompatActivity {
 
 
     // 아래 코드는 WebRTC 상담전화 신청할 때 쓰이는 코드입니다.
+    // AppRTC를 참고하였습니다.
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == CONNECTION_REQUEST && commandLineRun) {

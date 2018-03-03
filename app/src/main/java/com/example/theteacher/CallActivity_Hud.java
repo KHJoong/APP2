@@ -20,6 +20,8 @@ import java.util.Map;
  * Created by kimhj on 2018-02-10.
  */
 
+// CallActivity에서 사용하는 fragment입니다.
+// 지금 앱에서는 사용하지 않는 부분입니다.
 public class CallActivity_Hud extends Fragment{
 
     private View controlView;

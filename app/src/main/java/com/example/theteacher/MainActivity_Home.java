@@ -65,6 +65,9 @@ public class MainActivity_Home extends Fragment implements AbsListView.OnScrollL
         lvNewLecture.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                // listview의 아이템을 클릭하면 해당 강의의 자세한 내용을 확인할 수 있는 화면으로 이동합니다.
+                // 그 화면에서 필요한 내용을 전달해줍니다.
+                // path:프로필사진경로, id:강사id, title:강의제목, object:강의목표, explain:강의설명
                 Intent showDetailIntent = new Intent(getActivity(), LectureDetailActivity.class);
                 showDetailIntent.putExtra("path", newLectureAdapter.nlItem.get(i).getTeacherPicUrl());
                 showDetailIntent.putExtra("id", newLectureAdapter.nlItem.get(i).getTeacherId());
@@ -114,6 +117,7 @@ public class MainActivity_Home extends Fragment implements AbsListView.OnScrollL
     }
 
     // 서버에 새로운 강의 목록을 실질적으로 요청하는 AsyncTask입니다.
+    // 강의를 등록한 강사의 프로필사진, 강사 아이디, 강의 제목, 강의 목표, 강의 설명, 강의 등록 시간을 전달받아 listview에 등록합니다.
     public class getNewLecture extends AsyncTask<String, String, String>{
 
         Context gnlContext;
@@ -124,12 +128,7 @@ public class MainActivity_Home extends Fragment implements AbsListView.OnScrollL
         // 서버에서 강의 불러오는 것이 실패하면 띄워줄 AlertDialog입니다.
         AlertDialog.Builder alertDialogBuilder;
 
-        String path;
-        String id;
-        String title;
-        String object;
-        String explain;
-        String lasttime;
+        String path, id, title, object, explain, lasttime;
 
         getNewLecture(Context context, ListView lv, NewLecture_Adapter nla){
             gnlContext = context;

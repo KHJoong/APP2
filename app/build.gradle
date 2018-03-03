@@ -29,7 +29,6 @@ android {
 
 repositories {
     maven { url 'https://maven.google.com' }    // Glide
-    maven { url 'https://jitpack.io' }  // RTSP Streaming library
 }
 
 dependencies {
@@ -53,7 +52,4 @@ dependencies {
     compile files('libs/autobanh.jar')
     compile files('libs/base_java.jar')
     compile files('libs/libjingle_peerconnection.jar')
-
-    // RTSP Streaming
-    compile 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:rtplibrary:1.3.4'
 }

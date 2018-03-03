@@ -14,6 +14,7 @@ import java.util.ArrayList;
  */
 
 // 강의 관리 페이지의 등록한 강의 부분에 있는 ListView에 매핑될 Adapter입니다.
+// LectureManageActivity에서 사용합니다.
 public class Lecture_Adapter extends BaseAdapter {
 
     Context lContext;

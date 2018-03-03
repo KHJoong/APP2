@@ -61,6 +61,8 @@ import java.util.Set;
  * Created by kimhj on 2018-02-10.
  */
 
+// AppRTC를 기본 베이스로 이용했습니다.
+
 // WebRTC를 이용하여 화상전화를 할 때 뜨는 화면입니다.
 // 다음 두 경우 이 화면이 열리게 됩니다.
 // (1) 학생이 LectureDetailActivity에서 상담하기 버튼을 클릭했을 경우

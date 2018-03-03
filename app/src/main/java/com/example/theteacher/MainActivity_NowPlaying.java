@@ -1,6 +1,7 @@
 package com.example.theteacher;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v7.app.AlertDialog;
 import android.app.Fragment;
@@ -14,6 +15,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
+import android.widget.AdapterView;
 import android.widget.ListView;
 
 import org.json.JSONArray;
@@ -63,6 +65,17 @@ public class MainActivity_NowPlaying extends Fragment implements AbsListView.OnS
         nowPlayingAdapter = new NowPlaying_Adapter(getActivity());
 
         lvNowPlaying.setAdapter(nowPlayingAdapter);
+        lvNowPlaying.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                // 리스트뷰의 아이템을 클릭하게되면 해당 강의를 시청하는 화면으로 이동합니다.
+                // 강사의 id를 강의 시청 화면으로 넘겨서 어떤 강의를 보는지 알 수 있도록 합니다.
+                // 전달된 teacherId는 시청할 강의의 rtsp url을 확인하는데 사용됩니다.
+                Intent it = new Intent(getActivity().getApplicationContext(), LectureViewActivity.class);
+                it.putExtra("teacherId", nowPlayingAdapter.npItem.get(position).getTeacherId());
+                startActivity(it);
+            }
+        });
 
         startNowPlayingLecture(); // 성공적으로 목록을 받아왔을 경우 isPaging을 true로 설정해주는 부분이 getNowPlayingLecture Asynctask에 있습니다.
 
@@ -124,20 +137,19 @@ public class MainActivity_NowPlaying extends Fragment implements AbsListView.OnS
     }
 
     // 서버에서 현재 진행중인 강의 목록을 실질적으로 요청하는 AsyncTask입니다.
+    // id와 paging 구분 변수를 전송합니다.
     public class getNowPlayingLecture extends AsyncTask<String, String, String> {
 
         Context gnplContext;
         ListView lvNowPlayingLec;
         NowPlaying_Adapter npAdapter;
+
         // AsyncTask가 진행되는 동안 돌아갈 ProgressDialog입니다.
         ProgressDialog proDialog;
         // 서버에서 강의 불러오는 것이 실패하면 띄워줄 AlertDialog입니다.
         AlertDialog.Builder alertDialogBuilder;
 
-        String path;
-        String id;
-        String title;
-        String lasttime;
+        String path, id, title, lasttime;
         int difftime;
 
         getNowPlayingLecture(Context context, ListView lv, NowPlaying_Adapter npa){
@@ -189,6 +201,8 @@ public class MainActivity_NowPlaying extends Fragment implements AbsListView.OnS
             }
         }
 
+        // 결과에는 강사의 id, 강의 제목, thumbnail 경로, 강의를 시작한 시간이 들어있습니다.
+        // 강의 시작 시간이 최근일수록 리스트뷰의 맨 위에 위치합니다.
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
@@ -206,10 +220,12 @@ public class MainActivity_NowPlaying extends Fragment implements AbsListView.OnS
                         JSONObject jo = new JSONObject(joLec);
                         if(!TextUtils.isEmpty(jo.getString("id"))){
                             id = jo.getString("id");
-                            path = "http://www.o-ddang.com/theteacher/uploaded_thumbnail/"+id+".jpg";
                         }
                         if(!TextUtils.isEmpty(jo.getString("title"))){
                             title = jo.getString("title");
+                        }
+                        if(!TextUtils.isEmpty(jo.getString("path"))){
+                            path = "http://www.o-ddang.com/theteacher/"+jo.getString("path");
                         }
                         if(!TextUtils.isEmpty(jo.getString("lasttime"))){
                             lasttime = jo.getString("lasttime");

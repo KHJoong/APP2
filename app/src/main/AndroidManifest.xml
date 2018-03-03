@@ -75,7 +75,11 @@
         </activity>
 
         <!--선생님이 자신의 강의 세부 내용을 보는 곳(LectureDetailActivity)에서 강의 준비하기를 클릭하면 열리는 화면입니다.-->
-        <activity android:name=".LecturePlayActivity" android:screenOrientation="landscape"
+        <activity android:name=".LecturePlayActivity"
+            android:theme="@style/Theme.AppCompat.NoActionBar">
+        </activity>
+
+        <activity android:name=".LectureViewActivity"
             android:theme="@style/Theme.AppCompat.NoActionBar">
         </activity>
 

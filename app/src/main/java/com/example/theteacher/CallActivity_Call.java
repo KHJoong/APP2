@@ -15,6 +15,8 @@ import org.webrtc.RendererCommon.ScalingType;
  * Created by kimhj on 2018-02-10.
  */
 
+// CallActivity에서 이용하는 fragment입니다.
+// 통화시에는 기본적으로 상대방의 화면을 풀화면으로 담습니다.
 public class CallActivity_Call extends Fragment {
 
     private View controlView;

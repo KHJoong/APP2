@@ -54,10 +54,7 @@ public class LectureManageActivity extends AppCompatActivity {
     ListView lvLecList;
     Lecture_Adapter lectureAdapter;
 
-    String lecTitle;
-    String lecObject;
-    String lecExplain;
-    String lecTime;
+    String lecTitle, lecObject, lecExplain, lecTime;
 
     // LectureEnroll에서 id를 불러오기 위해 사용합니다.
     SharedPreferences sp;
@@ -85,13 +82,15 @@ public class LectureManageActivity extends AppCompatActivity {
         btnReset.setOnClickListener(btnClickListener);
         btnEnroll.setOnClickListener(btnClickListener);
 
-        // 저장되있는 등록된 강의들을 불러오는 부분입니다.
+        // SQLite에 저장되있는 내가 등록된 강의들을 불러오는 부분입니다.
         dbHelper = new DBHelper(this);
         dbHelper.selectLecture(lvLecList, lectureAdapter);
 
         lvLecList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                // 내가 등록한 강의 목록에서 선택한 강의의 세부 사항을 확인하는 화면으로 넘어가는 부분입니다.
+                // 세부사항을 확인하는 부분에서 강의 시작을 할 수 있습니다.
                 Intent it = new Intent(getApplicationContext(), LectureDetailActivity.class);
                 it.putExtra("path", sp.getString("picUri",""));
                 it.putExtra("id", sp.getString("id", ""));
