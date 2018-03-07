@@ -21,6 +21,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
@@ -47,6 +48,7 @@ import java.util.Date;
  * Created by kimhj on 2018-02-22.
  */
 
+// 이 activity는 강사가 강의를 준비하고 진행하기 위해 사용됩니다.
 public class LecturePlayActivity extends AppCompatActivity implements SurfaceHolder.Callback{
 
     Camera camera;
@@ -57,11 +59,20 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
     SurfaceHolder shLecScreenHolder;
     // 스트리밍을 시작하거나 정지하기 위해 있는 버튼입니다.
     ImageButton btnLecStart;
+    // 학생들간의, 학생들과 강사의 소통을 위해 채팅 메시지를 쯰워주는 listview입니다.
+    ListView lvLecChat;
+    LecChat_Adapter lecChatAdapter;
+
+    // 채팅 메시지와 관련된 모든 역할을 합니다.
+    // 채팅 서버와의 연결부터 메시지 전달, 받기, 종료까지 수행합니다.
+    LecChatThread lct;
 
     // 스트리밍 중이 아니면 1, 스트리밍 중이면 2의 값을 갖습니다.
     // 버튼 하나로 동작을 다르게 하기 위해 쓰는 변수입니다.
     int check;
     String title;
+    // 채팅 방 이름을 채팅 서버로 전송하기 위해 사용합니다.
+    String rId;
 
     // rtmp-rtsp-stream-client-java 라이브러리(Apache 2.0) 사용합니다.
     // 소스코드 수정을 위해 필요한 부분만 가져와서 사용했습니다.
@@ -101,12 +112,16 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
         rlLecPlayContainer = (RelativeLayout) findViewById(R.id.rlLecPlayContainer);
         svLecScreen = (SurfaceView) findViewById(R.id.svLecScreen);
         btnLecStart = (ImageButton) findViewById(R.id.btnLecStart);
+        lvLecChat = (ListView) findViewById(R.id.lvLecChat);
 
         btnLecStart.setOnClickListener(btnClickListener);
 
         shLecScreenHolder = svLecScreen.getHolder();
         shLecScreenHolder.addCallback(this);
         shLecScreenHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+
+        lecChatAdapter = new LecChat_Adapter(getApplicationContext());
+        lvLecChat.setAdapter(lecChatAdapter);
 
         // title은 시작한 강의가 뭔지 서버로 전송할 때 사용합니다.
         // user의 id를 rtsp 경로 구분자로 사용합니다.
@@ -141,8 +156,12 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
 
             }
         };
-
         rtspCamera1 = new RtspCamera1(svLecScreen, connectCheckerRtsp);
+
+        // 채팅 서버를 시작합니다.
+        rId = sp.getString("id", "")+"_"+title;
+        lct = new LecChatThread(getApplicationContext(), lvLecChat, lecChatAdapter, rId);
+        lct.start();
     }
 
     ImageButton.OnClickListener btnClickListener = new View.OnClickListener() {
@@ -167,6 +186,8 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
                         }
                         updateLecState = new UpdateLecState();
                         updateLecState.execute(jo.toString());
+
+                        lct.joinRoom();
                     } else if(check==2){
                         // 서버로 전송할 데이터를 JSON 형식으로 묶어주는 부분입니다.
                         JSONObject jo = new JSONObject();
@@ -178,6 +199,8 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
                         }
                         updateLecState = new UpdateLecState();
                         updateLecState.execute(jo.toString());
+                        // 채팅방에서 나가도록 서버에 요청합니다.
+                        lct.exitRoom();
                     }
 
                     break;
@@ -190,8 +213,17 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
         // 강의를 진행중인 상태에서 실수로 백버튼을 눌러도 종료되지 않도록 처리하였습니다.
         // 만약에 눌르 경우 토스트 메시지를 띄워서 강의를 먼저 종료하도록 유도합니다.
         if(check==1){
+            // 강의를 종료하면 썸네일을 더 이상 업로드하지 않도록 업로드 쓰레드도 종료시킵니다.
             if(uploadThumbNail!=null && !uploadThumbNail.isInterrupted()){
                 uploadThumbNail.interrupt();
+            }
+            // 채팅 서버와 소켓 연결이 되어 있는 경우 소켓을 종료시킵니다.
+            if(lct.socketChannel.isConnected()){
+                try {
+                    lct.socketChannel.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
             super.onBackPressed();
         } else {
@@ -213,6 +245,14 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
             Camera1ApiManager.camera.setPreviewCallback(null);
             Camera1ApiManager.camera.release();
             Camera1ApiManager.camera = null;
+        }
+        // 채팅 서버와 소켓 연결이 되어잇는 경우 종료시킵니다.
+        if(lct.socketChannel.isConnected()){
+            try {
+                lct.socketChannel.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -434,7 +474,9 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
 
                         Log.i("LecturePlayAct:", "uploadThumbNail:" + result);
 
-                        Thread.sleep(10000);
+                        // 썸네일 서버로 업로드하는 주기를 설정합니다.
+                        // ms 단위로 입력하여 시간을 변경합니다.
+                        Thread.sleep(3000);
                     } catch (Exception e) {
                         Log.i("LecturePlayAct:", "uploadThumbNail:" + e.toString());
                     }
