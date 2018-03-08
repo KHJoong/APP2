@@ -67,4 +67,8 @@ public class LecChat_Adapter extends BaseAdapter {
     public void addItem(LecChat lc){
         lcItem.add(lc);
     }
+
+    public void reverseAddItem(LecChat lc){
+        lcItem.add(0, lc);
+    }
 }

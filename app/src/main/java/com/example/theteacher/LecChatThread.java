@@ -3,10 +3,12 @@ package com.example.theteacher;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Handler;
+import android.text.TextUtils;
 import android.util.Log;
 import android.widget.AbsListView;
 import android.widget.ListView;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -58,6 +60,8 @@ public class LecChatThread extends Thread{
     // 메시지 추가 요청 시 10을 더해줍니다.(다음 10개를 가져올 수 있도록)
     int paging;
 
+    boolean isPaging = false;
+
     LecChatThread(Context c, ListView lv, LecChat_Adapter a, String r) {
         handler = new Handler();
         jo = new JSONObject();
@@ -67,29 +71,33 @@ public class LecChatThread extends Thread{
         lcAdapter = a;
         rId = r;
 
+        paging = 10;
+        lclv.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                firVisibleNum = firstVisibleItem;
+                visibleCount = visibleItemCount;
+                totalCount = totalItemCount;
+
+                if(firstVisibleItem<2 && isPaging==false){
+                    RequestOldLecChat rolc = new RequestOldLecChat();
+                    rolc.start();
+                }
+            }
+        });
+
         SharedPreferences sp = lcContext.getSharedPreferences("profile", Context.MODE_PRIVATE);
         id = sp.getString("id", "");
-
-        paging = 10;
     }
 
     @Override
     public void run() {
         try {
-            lclv.setOnScrollListener(new AbsListView.OnScrollListener() {
-                @Override
-                public void onScrollStateChanged(AbsListView view, int scrollState) {
-
-                }
-
-                @Override
-                public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-                    firVisibleNum = firstVisibleItem;
-                    visibleCount = visibleItemCount;
-                    totalCount = totalItemCount;
-                }
-            });
-
             // 채팅 서버와 소켓 연결을 하는 부분입니다.
             socketChannel = SocketChannel.open();
             socketChannel.configureBlocking(true);
@@ -234,9 +242,13 @@ public class LecChatThread extends Thread{
         }
     }
 
-    public class AlreadyReceivedChat extends Thread{
+    public class RequestOldLecChat extends Thread{
 
-        AlreadyReceivedChat(){
+        URL url = null;
+        String result = null;
+
+        RequestOldLecChat(){
+            isPaging = true;
             try {
                 jo.put("id", id);
                 jo.put("rId", rId);
@@ -247,10 +259,8 @@ public class LecChatThread extends Thread{
         }
 
         public void run(){
-
-            URL url = null;
             try {
-                url = new URL("http://www.o-ddang.com/theteacher/removePic.php");
+                url = new URL("http://www.o-ddang.com/theteacher/getLecChat.php");
                 HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
 
                 httpURLConnection.setDefaultUseCaches(false);
@@ -272,16 +282,60 @@ public class LecChatThread extends Thread{
                 while ((str = reader.readLine()) != null) {
                     builder.append(str + "\n");
                 }
-                String result = builder.toString();
+                result = builder.toString();
                 Log.i("LecChatThread:", "AlreadyReceivedChat:"+result);
+
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        try{
+                            JSONObject jo1 = new JSONObject(result);
+                            result = jo1.getString("process");
+                            JSONArray array = jo1.getJSONArray("oldLecChat");
+
+                            if(result.equals("ResponseSuccess")){
+                                String userId = null;
+                                String content = null;
+                                for(int n=0; n<array.length(); n++){
+                                    String oldChat = array.getString(n);
+                                    JSONObject ocJo = new JSONObject(oldChat);
+
+                                    if(!TextUtils.isEmpty(ocJo.getString("userId"))){
+                                        userId = ocJo.getString("userId");
+                                    }
+                                    if(!TextUtils.isEmpty(ocJo.getString("content"))){
+                                        content = ocJo.getString("content");
+                                    }
+                                    LecChat lecture = new LecChat(userId, content);
+                                    lcAdapter.reverseAddItem(lecture);
+                                }
+                                lcAdapter.notifyDataSetChanged();
+                                lclv.setSelection(firVisibleNum+10);
+
+                                paging += 10;
+                                isPaging = false;
+                            } else if(result.equals("ResponseFail")){
+                                isPaging = true;
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            Log.i("LecChatThread:", "RequestOldLecChat:JSONException:"+e.getMessage());
+                        }
+                    }
+                });
+
             } catch (MalformedURLException e) {
                 e.printStackTrace();
+                Log.i("LecChatThread:", "RequestOldLecChat:MalformedURLException:"+e.getMessage());
             } catch (ProtocolException e) {
                 e.printStackTrace();
+                Log.i("LecChatThread:", "RequestOldLecChat:ProtocolException:"+e.getMessage());
             } catch (IOException e) {
                 e.printStackTrace();
+                Log.i("LecChatThread:", "RequestOldLecChat:IOException:"+e.getMessage());
             }
 
         }
     }
+
 }

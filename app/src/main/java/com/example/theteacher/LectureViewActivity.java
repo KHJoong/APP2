@@ -3,6 +3,7 @@ package com.example.theteacher;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.WindowManager;
@@ -38,6 +39,8 @@ public class LectureViewActivity extends AppCompatActivity {
     String lecUrl;  // 강의 rtsp 스트리밍을 받을 때 사용되는 url입니다.
     String lecTitle; // 강의 제목입니다.
     String rId; // 채팅 방에 입장하기 위한 방 구분자(방 이름)입니다.("강사id_강의제목"의 형태로 만들어져 있습니다.)
+
+    Handler handler = new Handler();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,8 +82,13 @@ public class LectureViewActivity extends AppCompatActivity {
                 while (true){
                     if(vvLecScreen.isPlaying()){
                         lct.joinRoom();
-                        etLecChat.setVisibility(View.VISIBLE);
-                        btnLecChatSend.setVisibility(View.VISIBLE);
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                etLecChat.setVisibility(View.VISIBLE);
+                                btnLecChatSend.setVisibility(View.VISIBLE);
+                            }
+                        });
                         break;
                     }
                 }

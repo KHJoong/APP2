@@ -158,10 +158,11 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
         };
         rtspCamera1 = new RtspCamera1(svLecScreen, connectCheckerRtsp);
 
-        // 채팅 서버를 시작합니다.
+        // 채팅 서버에 연결합니다.
         rId = sp.getString("id", "")+"_"+title;
         lct = new LecChatThread(getApplicationContext(), lvLecChat, lecChatAdapter, rId);
         lct.start();
+
     }
 
     ImageButton.OnClickListener btnClickListener = new View.OnClickListener() {
