@@ -60,6 +60,10 @@ public class LecChatThread extends Thread{
     // 메시지 추가 요청 시 10을 더해줍니다.(다음 10개를 가져올 수 있도록)
     int paging;
 
+    // Paging 기준(상위 2번쨰 메시지를 확인했을 때)에 도달했을 때 요청을 한 번만 할 수 있도록 구분하기 위한 변수입니다.
+    // paging 요청을 보낸 후 기다리고 있는 상태일 경우 true,
+    // 요청이 끝나서 모든 처리가 완료되었으면 false 값을 갖습니다.
+    // 즉, true 일 때는 요청을 더 보내지 않고, false 일 때만 요청을 보냅니다.
     boolean isPaging = false;
 
     LecChatThread(Context c, ListView lv, LecChat_Adapter a, String r) {
@@ -84,6 +88,8 @@ public class LecChatThread extends Thread{
                 visibleCount = visibleItemCount;
                 totalCount = totalItemCount;
 
+                // paging 구분 변수가 false이면서 리스트뷰 위에 남은 아이템 수가 1개일 때
+                // 서버로 저장되어 있는 메시지를 더 받겠다는 요청을 보냅니다.
                 if(firstVisibleItem<2 && isPaging==false){
                     RequestOldLecChat rolc = new RequestOldLecChat();
                     rolc.start();
@@ -115,6 +121,8 @@ public class LecChatThread extends Thread{
         lcr.start();
     }
 
+    // 채팅 서버에 누군지 알려준 후, 어떤 방에 입장했는지 알려주는 함수입니다.
+    // rId가 채팅 방 이름을 나타내는 변수입니다.
     public void joinRoom() {
         new Thread(new Runnable() {
             @Override
@@ -139,6 +147,8 @@ public class LecChatThread extends Thread{
         }).start();
     }
 
+    // 메시지를 전송하면 실행되는 함수입니다.
+    // 어떤 유저(id)가 어떤 방(rId)에 어떤 내용(lc)을 보내는지(send_room) 전달하는 기능을 합니다.
     public void sendLecChat(String lc) {
         final String msg = lc;
         try {
@@ -166,6 +176,7 @@ public class LecChatThread extends Thread{
         }
     }
 
+    // 강의가 끝나고 방에서 나가게 되면 채팅방에서 나간다는 신호를 채팅 서버로 전송합니다.
     public void exitRoom() {
         new Thread(new Runnable() {
             @Override
@@ -194,6 +205,7 @@ public class LecChatThread extends Thread{
         }).start();
     }
 
+    // 채팅 서버에 연결되면 다른 유저들이 보내는 메시지를 받을 수 있도록 기다리고 있는 '채팅 메시지 수신자' 역할을 하는 Thread입니다.
     public class LecChatReceiver extends Thread {
 
         Context lcrContext;
@@ -242,12 +254,16 @@ public class LecChatThread extends Thread{
         }
     }
 
+    // 기존에 저장되어 있는 채팅 메시지가 있는지 요청하는 부분입니다.
+    // 처음 방에 접속했을 때, 리스트뷰에서 상위 안 본 메시지가 1개일 때 실행됩니다.
     public class RequestOldLecChat extends Thread{
 
         URL url = null;
         String result = null;
 
         RequestOldLecChat(){
+            // 두 번 요청하지 않도록 isPaging 값을 true로 바꿉니다.
+            // false일 때만 요청을 받기 때문입니다.
             isPaging = true;
             try {
                 jo.put("id", id);
@@ -312,9 +328,14 @@ public class LecChatThread extends Thread{
                                 lcAdapter.notifyDataSetChanged();
                                 lclv.setSelection(firVisibleNum+10);
 
+                                // 기존에 불러온 값에서 10개씩 추가하여 불러오도록 해주는 부분입니다.
+                                // 초기 paging 값은 10이고, 이 부분에서 요청이 완료될 때 마다 10씩 증가시킵니다.
                                 paging += 10;
+                                // 메시지 불러오는 요청을 성공적으로 끝냈기 때문에 재요청 할 수 있도록 isPaging 값을 false로 바꿉니다.
                                 isPaging = false;
                             } else if(result.equals("ResponseFail")){
+                                // 서버에 더 이상 저장되어 있는 메시지가 없는 경우 fail을 전달받습니다.
+                                // 더 받을 메시지가 없기 때문에 더 요청도 하지 않도록 isPaging값을 true로 완전히 바꿉니다.
                                 isPaging = true;
                             }
                         } catch (JSONException e) {
