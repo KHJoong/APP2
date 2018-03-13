@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.EditText;
 
 /**
  * Created by kimhj on 2018-03-13.
@@ -13,6 +14,7 @@ import android.widget.Button;
 
 public class QuestionEnroll_CustomDialog extends Dialog {
 
+    EditText etTitle;
     Button btnCamera;
     Button btnGallery;
 
@@ -31,15 +33,20 @@ public class QuestionEnroll_CustomDialog extends Dialog {
 
         setContentView(R.layout.question_enroll_dialog);
 
+        // 카메라로 사진을 찍게할지
+        // 갤러리에서 사진을 가져올지
+        // 두 경우를 선택할 수 있도록 버튼을 두개 띄웁니다.
         btnCamera = (Button)findViewById(R.id.btnCamera);
         btnGallery = (Button)findViewById(R.id.btnGallery);
 
         if(goCameraClickListener !=null && goGalleryClickListener !=null){
+            // 생성자에서 담아둔 listener를 버튼에 등록합니다.
             btnCamera.setOnClickListener(goCameraClickListener);
             btnGallery.setOnClickListener(goGalleryClickListener);
         }
     }
 
+    // 생성자에서 변수로 받은 Listener를 위의 버튼에 등록할 수 있도록 변수에 담아두는 부분입니다.
     public QuestionEnroll_CustomDialog(Context con, View.OnClickListener goC, View.OnClickListener goG){
         super(con, android.R.style.Theme_Translucent_NoTitleBar);
         goCameraClickListener = goC;

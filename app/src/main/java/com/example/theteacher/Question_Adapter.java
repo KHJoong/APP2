@@ -61,7 +61,7 @@ public class Question_Adapter extends BaseAdapter {
             vhq = (ViewHolderQuestion) view.getTag();
         }
 
-        Glide.with(qContext).load(qItem.get(i).getQuestionPicUrl()).into(vhq.ivPic);
+        Glide.with(qContext).load("http://o-ddang.com/theteacher/"+qItem.get(i).getQuestionPicUrl()).into(vhq.ivPic);
         vhq.tvTitle.setText(qItem.get(i).getQuestionTitle());
 
         return view;
