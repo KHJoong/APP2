@@ -20,6 +20,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.nio.channels.NotYetConnectedException;
 import java.nio.charset.Charset;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Handler;
@@ -42,7 +43,12 @@ public class DrawingView extends View{
     private Path circlePath;
 
     private float mX, mY;
+    private float pX, pY;
     private float TOUCH_TOLERANCE = 4;
+
+    int check;
+
+    receiveThread rt;
 
     // 기본 생성자 3개입니다.
     public DrawingView(Context context) {
@@ -75,6 +81,10 @@ public class DrawingView extends View{
         circlePaint.setStyle(Paint.Style.STROKE);
         circlePaint.setStrokeJoin(Paint.Join.MITER);
         circlePaint.setStrokeWidth(4f);
+
+        check = 0;
+
+        rt = new receiveThread();
     }
 
     @Override
@@ -99,78 +109,102 @@ public class DrawingView extends View{
         canvas.drawPath( circlePath,  circlePaint);
     }
 
+    public void receiveStart(){
+        rt.start();
+    }
+
+    public void receiveStop(){
+        if(!rt.isInterrupted()){
+            rt.interrupt();
+        }
+        if(rt.isAlive()){
+            rt.interrupt();
+        }
+    }
+
     // 상대방의 터치를 받아오는 부분입니다.
     // 클릭한 부분을 받아와서 내 화면에 그려줍니다.
-    public void receiveStart(){
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                String tmp = "";
-                while (true){
-                    if(QuestionViewActivity.socketChannel==null){
-                        break;
+    public class receiveThread extends Thread{
+        @Override
+        public void run() {
+            super.run();
+            String tmp = "";
+            while (true){
+                if(QuestionViewActivity.socketChannel==null){
+                    break;
+                }
+                ByteBuffer byteBuffer = ByteBuffer.allocate(256);
+                try {
+                    int readByteCount = QuestionViewActivity.socketChannel.read(byteBuffer);
+                    if (readByteCount == -1) {
+                        throw new IOException();
                     }
-                    ByteBuffer byteBuffer = ByteBuffer.allocate(256);
-                    try {
-                        int readByteCount = QuestionViewActivity.socketChannel.read(byteBuffer);
-                        Log.d("DrawingView:", "receiveStart:" + readByteCount);
-
-                        if (readByteCount == -1) {
-                            throw new IOException();
-                        }
-                        byteBuffer.flip();
-                        Charset charset = Charset.forName("EUC-KR");
-                        String toOb = charset.decode(byteBuffer).toString();
-                        tmp = tmp + toOb;
-                        Log.d("DrawingView:", "receiveStart:" + toOb);
-                        // 받아온 ByteBuffer를 String으로 변환시켜서 보면 {JSONObject}{JSONObject}{JSONO... 형식입니다.
-                        // JSON을 한 덩어리씩 끊어내서 작업을 진행합니다.
-                        String[] toObArr = tmp.split(System.getProperty("line.separator"));
-                        for(int i=0; i<toObArr.length; i++){
-                            // ByteBuffer의 크기 때문에 JSON이 완전한 덩어리로 받아지지 않는 경우가 있습니다.
-                            // 따라서 String이 }를 가지고있는지 확인하여(JSON 형식이 완전히 끝났는지 확인) 작업을 진행합니다.
-                            if(toObArr[i].contains("}")){
-                                JSONObject ob = new JSONObject(toObArr[i]);
-                                float x = Float.parseFloat(ob.getString("x"));
-                                float y = Float.parseFloat(ob.getString("y"));
-                                if(ob.getString("set").equals("start")){
-                                    mPath.reset();
+                    byteBuffer.flip();
+                    Charset charset = Charset.forName("EUC-KR");
+                    String toOb = charset.decode(byteBuffer).toString();
+                    Log.i("DrawingView:", "BufferRead:"+toOb);
+                    tmp = tmp + toOb;
+                    // 받아온 ByteBuffer를 String으로 변환시켜서 보면 {JSONObject}{JSONObject}{JSONO... 형식입니다.
+                    // JSON을 한 덩어리씩 끊어내서 작업을 진행합니다.
+                    String[] toObArr = tmp.split(System.getProperty("line.separator"));
+                    for(int i=0; i<toObArr.length; i++){
+                        // ByteBuffer의 크기 때문에 JSON이 완전한 덩어리로 받아지지 않는 경우가 있습니다.
+                        // 따라서 String이 }를 가지고있는지 확인하여(JSON 형식이 완전히 끝났는지 확인) 작업을 진행합니다.
+                        if(toObArr[i].contains("}")){
+                            JSONObject ob = new JSONObject(toObArr[i]);
+                            Log.i("DrawingView:", toObArr[i]);
+                            float percX = Float.parseFloat(ob.getString("x"));
+                            float percY = Float.parseFloat(ob.getString("y"));
+                            final float x = MainActivity_Question.qWidth*percX/100;
+                            final float y = MainActivity_Question.qHeight*percY/100;
+                            if(ob.getString("set").equals("start")){
+                                if(check == 0){
                                     mPath.moveTo(x, y);
-                                } else if(ob.getString("set").equals("move")){
-                                    mPath.lineTo(x, y);
+                                    check = 1;
+                                }
+                            } else if(ob.getString("set").equals("move")){
+                                if(check == 1){
                                     QuestionViewActivity.handler.post(new Runnable() {
                                         @Override
                                         public void run() {
+                                            mPath.lineTo(x, y);
                                             invalidate();
-                                        }
-                                    });
-                                } else if(ob.getString("set").equals("end")){
-                                    mPath.lineTo(x, y);
-                                    mCanvas.drawPath(mPath,  QuestionViewActivity.mPaint);
-                                    QuestionViewActivity.handler.post(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            invalidate();
-                                            mPath.reset();
                                         }
                                     });
                                 }
-                            } else {
-                                // String이 완전한 Json 형식이 아닌 경우 tmp에 저장하여 다음 메시지와 이어붙인 후 다시 작업을 진행하도록 합니다.
-                                tmp = "";
-                                tmp += toObArr[i];
+                            } else if(ob.getString("set").equals("end")){
+                                if(check == 1){
+                                    QuestionViewActivity.handler.post(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            mPath.lineTo(x, y);
+                                            mCanvas.drawPath(mPath,  QuestionViewActivity.mPaint);
+                                            invalidate();
+                                            check = 0;
+                                        }
+                                    });
+                                }
                             }
+                            if(i==toObArr.length-1){
+                                // {JSONObject} 딱 하나만 왔을 경우 사용한 후 tmp를 초기화하여 다음 추가할 때 영향을 끼치지 않도록 합니다.
+                                tmp = "";
+                            }
+                        } else {
+                            // String이 완전한 Json 형식이 아닌 경우 tmp에 저장하여 다음 메시지와 이어붙인 후 다시 작업을 진행하도록 합니다.
+                            tmp = "";
+                            tmp += toObArr[i];
                         }
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (JSONException e) {
-                        e.printStackTrace();
                     }
-                }
 
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                } catch (NotYetConnectedException e){
+                    e.printStackTrace();
+                }
             }
-        }).start();
+        }
     }
 
     // 사용자가 화면을 클릭했을 때 시작하는 부분입니다.
@@ -179,6 +213,8 @@ public class DrawingView extends View{
         mPath.moveTo(x, y);
         mX = x;
         mY = y;
+        pX = mX/MainActivity_Question.qWidth*100;
+        pY = mY/MainActivity_Question.qHeight*100;
         // 같은 방에 들어와있는 유저에게 찍은 점의 좌표를 전달해줍니다.
         new Thread(new Runnable() {
             @Override
@@ -188,8 +224,8 @@ public class DrawingView extends View{
                     // set에 start는 움직임이 시작했다는 것을 알리는 것입니다.
                     // moveTo를 사용할 수 있도록 전달해줍니다.
                     QuestionViewActivity.jo.put("set", "start");
-                    QuestionViewActivity.jo.put("x", mX);
-                    QuestionViewActivity.jo.put("y", mY);
+                    QuestionViewActivity.jo.put("x", pX);
+                    QuestionViewActivity.jo.put("y", pY);
                     ByteBuffer bf = ByteBuffer.wrap(QuestionViewActivity.jo.toString().getBytes("EUC-KR"));
                     QuestionViewActivity.socketChannel.write(bf);
                     bf.clear();
@@ -222,12 +258,15 @@ public class DrawingView extends View{
             @Override
             public void run() {
                 try {
+                    pX = mX/MainActivity_Question.qWidth*100;
+                    pY = mY/MainActivity_Question.qHeight*100;
+
                     QuestionViewActivity.jo.put("type", "send_room");
                     // set의 move는 현재 클릭한채로 움직이고 있다는 것을 의미합니다.
                     // lineTo를 사용할 수 있도록 전달해줍니다.
                     QuestionViewActivity.jo.put("set", "move");
-                    QuestionViewActivity.jo.put("x", mX);
-                    QuestionViewActivity.jo.put("y", mY);
+                    QuestionViewActivity.jo.put("x", pX);
+                    QuestionViewActivity.jo.put("y", pY);
                     ByteBuffer bf = ByteBuffer.wrap(QuestionViewActivity.jo.toString().getBytes("EUC-KR"));
                     QuestionViewActivity.socketChannel.write(bf);
                     bf.clear();
@@ -252,8 +291,8 @@ public class DrawingView extends View{
                     QuestionViewActivity.jo.put("type", "send_room");
                     // set의 end는 화면에서 손을 뗀 것을 의미합니다.
                     QuestionViewActivity.jo.put("set", "end");
-                    QuestionViewActivity.jo.put("x", mX);
-                    QuestionViewActivity.jo.put("y", mY);
+                    QuestionViewActivity.jo.put("x", pX);
+                    QuestionViewActivity.jo.put("y", pY);
                     ByteBuffer bf = ByteBuffer.wrap(QuestionViewActivity.jo.toString().getBytes("EUC-KR"));
 //                    MainActivity.socketChannel.socket().getOutputStream().write(MainActivity.jo.toString().getBytes("EUC-KR"));
                     QuestionViewActivity.socketChannel.write(bf);

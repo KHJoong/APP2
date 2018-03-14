@@ -67,6 +67,9 @@ public class MainActivity_Question extends Fragment implements AbsListView.OnScr
     // 이 Bitmap은 DrawingView에서 배경 사진으로 설정하기 위해 사용됩니다.
     // 서버에 질문하기 위한 사진을 등록한 후 그 사진을 bitmap으로 저장해두고 DrawingView에서 사용합니다.
     static Bitmap mBitmap;
+    // DrawingView에서 손으로 터치한 부분의 좌표를 상대방에게 전달할 때 화면의 크기 대비 %로 변환하여 전달하기 위해 계산할 때 쓰입니다.
+    static int qWidth;
+    static int qHeight;
 
     // onActivityResult() 를 위해 쓰이는 코드입니다.
     // 크롭했을 때의 코드입니다.
@@ -631,6 +634,7 @@ public class MainActivity_Question extends Fragment implements AbsListView.OnScr
             progressDialog = pd;
             url = "http://o-ddang.com/theteacher/"+u;
             type = t;
+            mBitmap = null;
         }
 
         @Override
@@ -639,10 +643,10 @@ public class MainActivity_Question extends Fragment implements AbsListView.OnScr
             try {
                 DisplayMetrics displayMetrics = new DisplayMetrics();
                 getActivity().getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-                int width = displayMetrics.widthPixels;
-                int height = displayMetrics.heightPixels;
+                qWidth = displayMetrics.widthPixels;
+                qHeight = displayMetrics.heightPixels;
 
-                Drawable dr = Glide.with(getActivity()).load(url).into(width,height).get();
+                Drawable dr = Glide.with(getActivity()).load(url).into(qWidth,qHeight).get();
                 if (dr instanceof BitmapDrawable) {
                     BitmapDrawable bitmapDrawable = (BitmapDrawable) dr;
                     if(bitmapDrawable.getBitmap() != null) {
@@ -651,7 +655,7 @@ public class MainActivity_Question extends Fragment implements AbsListView.OnScr
                 }
 
                 Canvas canvas = new Canvas(mBitmap);
-                dr.setBounds(0, 0, width, height);
+                dr.setBounds(0, 0, qWidth, qHeight);
                 dr.draw(canvas);
             } catch (InterruptedException e) {
                 e.printStackTrace();
