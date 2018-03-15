@@ -653,10 +653,6 @@ public class MainActivity_Question extends Fragment implements AbsListView.OnScr
                         mBitmap = bitmapDrawable.getBitmap();
                     }
                 }
-
-                Canvas canvas = new Canvas(mBitmap);
-                dr.setBounds(0, 0, qWidth, qHeight);
-                dr.draw(canvas);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } catch (ExecutionException e) {

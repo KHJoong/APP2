@@ -125,7 +125,7 @@ public class QuestionViewActivity extends AppCompatActivity{
         mPaint.setStyle(Paint.Style.STROKE);
         mPaint.setStrokeJoin(Paint.Join.ROUND);
         mPaint.setStrokeCap(Paint.Cap.ROUND);
-        mPaint.setStrokeWidth(12);
+        mPaint.setStrokeWidth(10);
     }
 
     @Override
@@ -136,7 +136,6 @@ public class QuestionViewActivity extends AppCompatActivity{
         adBuilder.setPositiveButton("확인", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                dv.receiveStop();
                 exitQuestion eq = new exitQuestion();
                 eq.start();
             }
@@ -207,6 +206,7 @@ public class QuestionViewActivity extends AppCompatActivity{
 
                 if (socketChannel.isConnected() && socketChannel!=null) {
                     socketChannel.close();
+                    dv.receiveStop();
                 }
             } catch (JSONException e) {
                 e.printStackTrace();

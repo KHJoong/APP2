@@ -20,6 +20,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.NotYetConnectedException;
 import java.nio.charset.Charset;
 import java.util.concurrent.ExecutionException;
@@ -46,9 +47,17 @@ public class DrawingView extends View{
     private float pX, pY;
     private float TOUCH_TOLERANCE = 4;
 
+    // 가끔 ByteBuffer을 받아들인 후 스트링으로 변환했을 때 똑같은 start를 move 다음에 받아들이는 경우 발생합니다
+    // end가 발생하기 전 똑같은 start의 시작을 방지하기 위해서 사용하는 변수입니다.
+    // check가 0이면 start할 수 있는 상태이고 start하면 1로 바뀝니다.
+    // 1일때는 start 메시지를 받아도 작동하지 않습니다. end 신호를 받아서 손의 터치가 끝났음을 인지했을 때 0으로 바뀝니다.
     int check;
 
+    // 상대방의 터치를 서버로부터 받아오는 Thread입니다.
     receiveThread rt;
+
+    // MainActivity_Question에서 받은 Bitmap을 canvas의 크기에 맞게 resize하여 저장할 변수입니다.
+    Bitmap resizedBitmap;
 
     // 기본 생성자 3개입니다.
     public DrawingView(Context context) {
@@ -85,6 +94,11 @@ public class DrawingView extends View{
         check = 0;
 
         rt = new receiveThread();
+
+        // MainActivity_Question에서 받아온 Bitmap을 resize합니다.
+        // 화면 크기에 맞게 설정해서 받아왔는데 Canvas에 그려보면 짤리는 현상이 있습니다.
+        // 여기서 다시 resize한 후 그리면 정상적으로 작동합니다.
+        resizedBitmap = Bitmap.createScaledBitmap(MainActivity_Question.mBitmap, MainActivity_Question.qWidth, MainActivity_Question.qHeight, true);
     }
 
     @Override
@@ -95,7 +109,7 @@ public class DrawingView extends View{
 
         // MainActivity_Question에서 생성한 bitmap을 바탕으로 canvas를 생성합니다.
         // 여기서 bitmap은 서버에 등록한 질문(사진)을 가지고 만들어진 bitmap입니다.
-        mCanvas = new Canvas(MainActivity_Question.mBitmap);
+        mCanvas = new Canvas(resizedBitmap);
     }
 
     @Override
@@ -104,15 +118,17 @@ public class DrawingView extends View{
 
         // onSizeChanged에서 만든 canvas에 MainActivity_Question에서 생성한 bitmap을 그립니다.
         // 배경화면이 사진으로 바뀌는 부분입니다.
-        canvas.drawBitmap( MainActivity_Question.mBitmap, 0, 0, mBitmapPaint);
+        canvas.drawBitmap( resizedBitmap, 0, 0, mBitmapPaint);
         canvas.drawPath( mPath,  QuestionViewActivity.mPaint);
         canvas.drawPath( circlePath,  circlePaint);
     }
 
+    // 상대방의 터치를 인식하는 Thread를 시작하는 함수입니다.
     public void receiveStart(){
         rt.start();
     }
 
+    // 상대방의 터치를 인식하는 Thread를 종료하는 함수입니다.
     public void receiveStop(){
         if(!rt.isInterrupted()){
             rt.interrupt();
@@ -159,6 +175,7 @@ public class DrawingView extends View{
                             final float y = MainActivity_Question.qHeight*percY/100;
                             if(ob.getString("set").equals("start")){
                                 if(check == 0){
+                                    mPath.reset();
                                     mPath.moveTo(x, y);
                                     check = 1;
                                 }
@@ -180,6 +197,7 @@ public class DrawingView extends View{
                                             mPath.lineTo(x, y);
                                             mCanvas.drawPath(mPath,  QuestionViewActivity.mPaint);
                                             invalidate();
+                                            mPath.reset();
                                             check = 0;
                                         }
                                     });
@@ -198,6 +216,7 @@ public class DrawingView extends View{
 
                 } catch (IOException e) {
                     e.printStackTrace();
+                    break;
                 } catch (JSONException e) {
                     e.printStackTrace();
                 } catch (NotYetConnectedException e){
