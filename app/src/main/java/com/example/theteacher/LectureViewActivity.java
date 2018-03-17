@@ -64,8 +64,8 @@ public class LectureViewActivity extends AppCompatActivity {
 
         // MainActivity_NowPlaying에서  Intent로 받은 id를 rtsp url의 구분자로 사용합니다.
         Intent it = getIntent();
-        lecUrl = "rtsp://115.71.232.230:81/theteacher/"+it.getStringExtra("teacherId");
         lecTitle = it.getStringExtra("lecTitle");
+        lecUrl = "rtsp://115.71.232.230:81/theteacher/"+it.getStringExtra("teacherId")+"_"+lecTitle;
 
         // 채팅 서버와 연결하는 부분입니다.
         rId = it.getStringExtra("teacherId")+"_"+lecTitle;

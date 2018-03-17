@@ -2,6 +2,7 @@ package com.example.theteacher.NeedToStreaming.rtplibrary.rtsp;
 
 import android.media.MediaCodec;
 import android.os.Build;
+import android.os.Environment;
 import android.support.annotation.RequiresApi;
 import android.view.SurfaceView;
 import android.view.TextureView;
@@ -11,7 +12,12 @@ import com.example.theteacher.NeedToStreaming.rtplibrary.view.OpenGlView;
 import com.example.theteacher.NeedToStreaming.rtsp.rtsp.Protocol;
 import com.example.theteacher.NeedToStreaming.rtsp.rtsp.RtspClient;
 import com.example.theteacher.NeedToStreaming.rtsp.utils.ConnectCheckerRtsp;
+
+import java.io.File;
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 /**
  * More documentation see:
@@ -23,6 +29,7 @@ import java.nio.ByteBuffer;
 public class RtspCamera1 extends Camera1Base {
 
   private RtspClient rtspClient;
+  RecordStartThread rst;
 
   public RtspCamera1(SurfaceView surfaceView, ConnectCheckerRtsp connectCheckerRtsp) {
     super(surfaceView);
@@ -72,11 +79,52 @@ public class RtspCamera1 extends Camera1Base {
     if (!cameraManager.isPrepared()) {
       rtspClient.connect();
     }
+    rst = new RecordStartThread(url);
+    rst.start();
   }
 
   @Override
   protected void stopStreamRtp() {
     rtspClient.disconnect();
+    stopRecord();
+    if(rst.isAlive() || !rst.isInterrupted()){
+      rst.interrupt();
+    }
+  }
+
+  //
+  public class RecordStartThread extends Thread{
+
+    String url;
+    String time;
+
+    RecordStartThread(String u){
+      url = u;
+
+      Calendar cal = Calendar.getInstance();
+      SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy_MM_dd_hh");
+      time = sdf1.format(cal.getTime());
+    }
+
+    @Override
+    public void run() {
+      super.run();
+      while (true){
+        if(rtspClient.isStreaming()){
+          String[] urlArray = url.split("/");
+          String fileName = urlArray[urlArray.length-1]+"_"+time+".mp4";
+          File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), fileName);
+          System.out.println("RecordStartThread:"+file.getPath());
+          try {
+            startRecord(file.getPath());
+            System.out.println("startSuccess");
+            break;
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+        }
+      }
+    }
   }
 
   @Override

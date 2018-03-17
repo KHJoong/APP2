@@ -1,12 +1,15 @@
 package com.example.theteacher;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.AbsListView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -247,6 +250,13 @@ public class LecChatThread extends Thread{
                     });
                 } catch (IOException e) {
                     e.printStackTrace();
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(lcrContext, "채팅 서버에 연결할 수 없습니다.", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                    break;
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }

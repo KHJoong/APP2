@@ -128,7 +128,7 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
         Intent it = getIntent();
         title = it.getStringExtra("title");
         sp = getSharedPreferences("profile", MODE_PRIVATE);
-        url = "rtsp://115.71.232.230:81/theteacher/" + sp.getString("id", "");
+        url = "rtsp://115.71.232.230:81/theteacher/" + sp.getString("id", "")+"_"+title;
 
         connectCheckerRtsp = new ConnectCheckerRtsp() {
             @Override
