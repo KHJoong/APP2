@@ -50,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
         Collections.addAll(menuList, new String[]{
                 "Home",
                 "NowPlaying",
+                "Recorded",
                 "Question",
                 "Setting"
         });
@@ -101,10 +102,13 @@ public class MainActivity extends AppCompatActivity {
                 fragment = new MainActivity_NowPlaying();
                 break;
             case 2:
+                fragment = new MainActivity_Recorded();
+                break;
+            case 3:
                 // 질문 글 목록을 보여주는 Fragment입니다.
                 fragment = new MainActivity_Question();
                 break;
-            case 3:
+            case 4:
                 // 설정 화면을 띄워주는 Fragment입니다.
                 fragment = new MainActivity_Setting();
                 break;

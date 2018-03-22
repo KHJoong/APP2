@@ -453,7 +453,7 @@ public class ReceiveSignalActivity extends AppCompatActivity {
             return true;
         }
 
-        new AlertDialog.Builder(this)
+        new AlertDialog.Builder(ReceiveSignalActivity.this)
                 .setTitle(getText(R.string.invalid_url_title))
                 .setMessage(getString(R.string.invalid_url_text, url))
                 .setCancelable(false)
@@ -529,7 +529,9 @@ public class ReceiveSignalActivity extends AppCompatActivity {
             String realPath = null;
             try {
                 JSONObject jo = new JSONObject(s);
-                path = jo.getString("path");
+                if(!TextUtils.isEmpty(jo.getString("path"))) {
+                    path = jo.getString("path");
+                }
             } catch (JSONException e) {
                 e.printStackTrace();
             }

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:padding="12dp"
+    android:layout_gravity="center">
+
+    <TextView
+        android:id="@+id/tv"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:text="등록할 영상의 제목을 입력해주세요."
+        android:textSize="15dp"
+        android:gravity="center"/>
+
+    <EditText
+        android:id="@+id/etRecordedTitle"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tv"/>
+
+    <Button
+        android:id="@+id/btnEnrollRecorded"
+        android:layout_width="250dp"
+        android:layout_height="40dp"
+        android:layout_below="@id/etRecordedTitle"
+        android:text="등록"
+        android:background="#eeeeee"
+        android:layout_marginLeft="2dp"/>
+
+</RelativeLayout>

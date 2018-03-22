@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.EditText;
 
 /**
  * Created by kimhj on 2018-03-13.
@@ -14,12 +13,18 @@ import android.widget.EditText;
 
 public class QuestionEnroll_CustomDialog extends Dialog {
 
-    EditText etTitle;
     Button btnCamera;
     Button btnGallery;
 
     View.OnClickListener goCameraClickListener;
     View.OnClickListener goGalleryClickListener;
+
+    // 생성자에서 변수로 받은 Listener를 위의 버튼에 등록할 수 있도록 변수에 담아두는 부분입니다.
+    public QuestionEnroll_CustomDialog(Context con, View.OnClickListener goC, View.OnClickListener goG){
+        super(con, android.R.style.Theme_Translucent_NoTitleBar);
+        goCameraClickListener = goC;
+        goGalleryClickListener = goG;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,13 +49,6 @@ public class QuestionEnroll_CustomDialog extends Dialog {
             btnCamera.setOnClickListener(goCameraClickListener);
             btnGallery.setOnClickListener(goGalleryClickListener);
         }
-    }
-
-    // 생성자에서 변수로 받은 Listener를 위의 버튼에 등록할 수 있도록 변수에 담아두는 부분입니다.
-    public QuestionEnroll_CustomDialog(Context con, View.OnClickListener goC, View.OnClickListener goG){
-        super(con, android.R.style.Theme_Translucent_NoTitleBar);
-        goCameraClickListener = goC;
-        goGalleryClickListener = goG;
     }
 
 }
