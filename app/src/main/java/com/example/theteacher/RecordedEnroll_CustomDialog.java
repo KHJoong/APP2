@@ -136,7 +136,6 @@ public class RecordedEnroll_CustomDialog extends Dialog {
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
-            proDialog.dismiss();
 
             String result = null;
             String repath = null;
@@ -146,12 +145,14 @@ public class RecordedEnroll_CustomDialog extends Dialog {
                 if(result.equals("success")){
                     repath = getJsonData.getString("repath");
 
-                    // 소켓연결해서 비디오 서버로 보낼 부분
-                    // 서비스를 사용하는게 좋을듯싶은데........
+                    // 소켓연결해서 서버(VideoReceiver)로 보내는 부분
+                    VideoSocketTransfer vst = new VideoSocketTransfer(proDialog, repath, MainActivity_Recorded.videoPath);
+                    vst.start();
 
                     dismiss();
                 } else {
                     Toast.makeText(reContext, "네트워크 상태를 확인한 후 다시 시도해주세요.", Toast.LENGTH_SHORT).show();
+                    proDialog.dismiss();
                     dismiss();
                 }
             } catch (JSONException e) {
