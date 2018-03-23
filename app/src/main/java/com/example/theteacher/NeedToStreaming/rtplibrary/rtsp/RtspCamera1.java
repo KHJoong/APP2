@@ -102,7 +102,7 @@ public class RtspCamera1 extends Camera1Base {
       url = u;
 
       Calendar cal = Calendar.getInstance();
-      SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy_MM_dd_hh");
+      SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss");
       time = sdf1.format(cal.getTime());
     }
 

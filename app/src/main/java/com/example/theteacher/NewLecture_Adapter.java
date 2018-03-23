@@ -31,7 +31,6 @@ public class NewLecture_Adapter extends BaseAdapter {
         nlItem = new ArrayList<Lecture>();
     }
 
-
     @Override
     public int getCount() {
         return nlItem.size();

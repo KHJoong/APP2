@@ -90,6 +90,10 @@
             android:theme="@style/Theme.AppCompat.NoActionBar">
         </activity>
 
+        <!--학생이 녹화되어 업로드된 강의를 보고자 할 때(in MainActivity_Recorded) 열리는 화면입니다.-->
+        <activity android:name=".RecordedViewActivity"
+            android:theme="@style/Theme.AppCompat.NoActionBar"></activity>
+
         <!--ProfileModifyActivity에서 카메라, 갤러리, 크롭을 위해 사용하는 provider입니다.-->
         <provider
             android:authorities="com.example.theteacher.provider"
