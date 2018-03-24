@@ -33,6 +33,13 @@
             android:enabled="true">
         </service>
 
+        <!--Video 파일을 업로드하기 위해 사용되는 service입니다.-->
+        <!--MainActivity_Recorded ㅡ RecordedEnroll_CustomDialog ㅡ VideoTransferService 순으로 사용됩니다.-->
+        <service
+            android:name=".VideoTransferService"
+            android:enabled="true">
+        </service>
+
         <!--splash 화면입니다.-->
         <activity android:name=".SplashActivity" android:theme="@style/Theme.AppCompat.Light.NoActionBar">
             <intent-filter>

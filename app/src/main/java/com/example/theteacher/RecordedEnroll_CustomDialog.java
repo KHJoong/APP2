@@ -2,7 +2,9 @@ package com.example.theteacher;
 
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -159,9 +161,14 @@ public class RecordedEnroll_CustomDialog extends Dialog {
                     repath = getJsonData.getString("repath");
 
                     // 소켓연결해서 서버(VideoReceiver)로 비디오 파일을 보내는 부분
-                    VideoSocketTransfer vst = new VideoSocketTransfer(proDialog, repath, MainActivity_Recorded.videoPath);
-                    vst.start();
+//                    VideoSocketTransfer vst = new VideoSocketTransfer(proDialog, repath, MainActivity_Recorded.videoPath);
+//                    vst.start();
+                    Intent socketIntent = new Intent(reContext, VideoTransferService.class);
+                    socketIntent.putExtra("videoTitle", repath);
+                    socketIntent.putExtra("videoPath", MainActivity_Recorded.videoPath);
+                    reContext.startService(socketIntent);
 
+                    proDialog.dismiss();
                     dismiss();
                 } else {
                     Toast.makeText(reContext, "네트워크 상태를 확인한 후 다시 시도해주세요.", Toast.LENGTH_SHORT).show();
