@@ -161,8 +161,6 @@ public class RecordedEnroll_CustomDialog extends Dialog {
                     repath = getJsonData.getString("repath");
 
                     // 소켓연결해서 서버(VideoReceiver)로 비디오 파일을 보내는 부분
-//                    VideoSocketTransfer vst = new VideoSocketTransfer(proDialog, repath, MainActivity_Recorded.videoPath);
-//                    vst.start();
                     Intent socketIntent = new Intent(reContext, VideoTransferService.class);
                     socketIntent.putExtra("videoTitle", repath);
                     socketIntent.putExtra("videoPath", MainActivity_Recorded.videoPath);

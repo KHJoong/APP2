@@ -112,7 +112,7 @@ public class MainActivity_Home extends Fragment implements AbsListView.OnScrollL
             e.printStackTrace();
         }
 
-        getNewLecture gnl = new getNewLecture(getActivity().getApplicationContext(), lvNewLecture, newLectureAdapter);
+        getNewLecture gnl = new getNewLecture(getActivity(), lvNewLecture, newLectureAdapter);
         gnl.execute(jo.toString());
     }
 

@@ -223,7 +223,7 @@ public class MainActivity_Recorded extends Fragment implements AbsListView.OnScr
             e.printStackTrace();
         }
 
-        getRecLecture grl = new getRecLecture(getActivity().getApplicationContext(), lvRecordedPlaying, recordedAdapter);
+        getRecLecture grl = new getRecLecture(getActivity(), lvRecordedPlaying, recordedAdapter);
         grl.execute(jo.toString());
     }
 

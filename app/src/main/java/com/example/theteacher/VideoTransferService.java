@@ -49,13 +49,17 @@ public class VideoTransferService extends Service {
     NotificationManager mNotifyManager;
     NotificationCompat.Builder mBuilder;
 
+    // 앱이 종료되었을 때 업로드중이면 이어서 전송할 수 있도록 START_CONTINUATION_MASK Flag를 담아서 onStartCommand의 return 값에 넣어줍니다.
+    // 만약 전송이 완료된 상태라면 다른 파일을 또 업로드 할 수 있도록 이 service를 죽여야 합니다. 그래서 START_NOT_STICKY Flag를 담습니다.
+    int returnValue;
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         reTitle = intent.getStringExtra("videoTitle");
         rePath = intent.getStringExtra("videoPath");
 
         // 비디오 업로드를 마친 후 service가 종료되면 자동으로 재시작되지 않게 합니다.
-        return START_NOT_STICKY;
+        return returnValue;
     }
 
     @Nullable
@@ -67,6 +71,8 @@ public class VideoTransferService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        // 도중에 앱을 종료하더라도 지금 업로드 중인 파일은 마저 보낼 수 있도록 Flag 설정
+        returnValue = START_CONTINUATION_MASK;
 
         bytesRead = 0;
         count = 0;
@@ -118,6 +124,8 @@ public class VideoTransferService extends Service {
                     dos.close();
                     socket.close();
 
+                    // 전송이 완료되면 이 service가 재실행되지 않도록 flag 재설정 후 service 종료
+                    returnValue = START_NOT_STICKY;
                     stopSelf();
                 } catch (UnknownHostException e) {
                     e.printStackTrace();
