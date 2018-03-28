@@ -32,7 +32,7 @@ repositories {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
@@ -42,14 +42,13 @@ dependencies {
     compile 'com.android.support:support-v13:27.0.2'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     testCompile 'junit:junit:4.12'
-
     // Glide
     implementation 'com.github.bumptech.glide:glide:4.6.1'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.6.1'
-
     // WebRTC
     compile files('libs/audio_device_java.jar')
     compile files('libs/autobanh.jar')
     compile files('libs/base_java.jar')
     compile files('libs/libjingle_peerconnection.jar')
+    implementation project(':openCVLibrary341')
 }

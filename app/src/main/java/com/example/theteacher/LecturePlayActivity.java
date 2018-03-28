@@ -19,13 +19,18 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.example.theteacher.NeedToStreaming.encoder.input.video.Camera1ApiManager;
+import com.example.theteacher.NeedToStreaming.encoder.input.video.EffectManager;
 import com.example.theteacher.NeedToStreaming.rtplibrary.rtsp.RtspCamera1;
 import com.example.theteacher.NeedToStreaming.rtsp.utils.ConnectCheckerRtsp;
 
@@ -42,6 +47,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 /**
@@ -62,6 +68,9 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
     // 학생들간의, 학생들과 강사의 소통을 위해 채팅 메시지를 쯰워주는 listview입니다.
     ListView lvLecChat;
     LecChat_Adapter lecChatAdapter;
+    // 스트리밍 영상에 필터를 씌울 때, 씌울 필터의 종류를 선택하기 위해 사용되는 spinner입니다.
+    Spinner sFilter;
+    ArrayAdapter sinnerAdapter;
 
     // 채팅 메시지와 관련된 모든 역할을 합니다.
     // 채팅 서버와의 연결부터 메시지 전달, 받기, 종료까지 수행합니다.
@@ -113,7 +122,59 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
         svLecScreen = (SurfaceView) findViewById(R.id.svLecScreen);
         btnLecStart = (ImageButton) findViewById(R.id.btnLecStart);
         lvLecChat = (ListView) findViewById(R.id.lvLecChat);
+        sFilter = (Spinner)findViewById(R.id.sFilter);
 
+        // 강의의 filter 종류를 선택는 spinner를 강의 중이 아닐 경우 보이지 않게, 강의중일 경우에는 보이도록 설정합니다.
+        // UpdateLecState의 postexecute에서 visible or gone이 재설정됩니다.
+        sFilter.setVisibility(View.GONE);
+
+        // filter의 종류와 그것들을 담고 있는 ArrayList입니다.
+        ArrayList<String> filterList = new ArrayList<>();
+        filterList.add("CLEAR");
+        filterList.add("GREYSCALE");
+        filterList.add("SEPIA");
+        filterList.add("NEGATIVE");
+        filterList.add("AQUA");
+        filterList.add("POSTERIZE");
+
+        // Filter들을 Sinnper와 연결할 Adapter에 등록합니다.
+        sinnerAdapter = new ArrayAdapter(this, android.R.layout.simple_spinner_item, filterList);
+        // Spinner와 Adapter를 연결합니다.
+        sinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        sFilter.setAdapter(sinnerAdapter);
+        sFilter.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                switch (position){
+                    case 0:
+                        rtspCamera1.setEffect(EffectManager.CLEAR);
+                        break;
+                    case 1:
+                        rtspCamera1.setEffect(EffectManager.GREYSCALE);
+                        break;
+                    case 2:
+                        rtspCamera1.setEffect(EffectManager.SEPIA);
+                        break;
+                    case 3:
+                        rtspCamera1.setEffect(EffectManager.NEGATIVE);
+                        break;
+                    case 4:
+                        rtspCamera1.setEffect(EffectManager.AQUA);
+                        break;
+                    case 5:
+                        rtspCamera1.setEffect(EffectManager.POSTERIZE);
+                        break;
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        // 강의 시작 버튼입니다.
+        // 한 번 클릭할 경우 강의 종료 버튼의 기능까지 합니다.
         btnLecStart.setOnClickListener(btnClickListener);
 
         shLecScreenHolder = svLecScreen.getHolder();
@@ -190,6 +251,9 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
 
                         lct.joinRoom();
                     } else if(check==2){
+                        // 스트리밍 영상에 필터가 씌워져 있을 경우, 필터 효과를 제거한 후 강의를 종료합니다.
+                        rtspCamera1.setEffect(EffectManager.CLEAR);
+
                         // 서버로 전송할 데이터를 JSON 형식으로 묶어주는 부분입니다.
                         JSONObject jo = new JSONObject();
                         try {
@@ -391,6 +455,9 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
                 // 10초에 한 번씩 업로드합니다.
                 uploadThumbNail = new UploadThumbNail();
                 uploadThumbNail.start();
+                // 강의의 필터를 고르는 spinner를 보이게 해줍니다.
+                sFilter.setAdapter(sinnerAdapter);
+                sFilter.setVisibility(View.VISIBLE);
                 Toast.makeText(getApplicationContext(), "강의를 시작합니다.", Toast.LENGTH_SHORT).show();
             } else if(result.equals("updateFail")){
                 // 강의 시작 요청이 실패했을 때의 응답입니다.
@@ -404,6 +471,8 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
 
                 // 강의를 정지하는 모양의 아이콘을 시작하는 모양의 아이콘으로 바꿔줍니다.
                 btnLecStart.setImageResource(R.drawable.rec_play);
+                // 강의의 필터를 고르는 spinner를 보이지 않게 해줍니다.
+                sFilter.setVisibility(View.GONE);
                 // 섬네일을 만들어서 서버로 올리는 쓰레드를 정지시키는 부분입니다.
                 if(!uploadThumbNail.isInterrupted()){
                     uploadThumbNail.interrupt();

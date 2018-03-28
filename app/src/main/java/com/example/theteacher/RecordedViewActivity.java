@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.WindowManager;
 import android.widget.MediaController;
 import android.widget.VideoView;
@@ -34,6 +35,7 @@ public class RecordedViewActivity extends AppCompatActivity {
         // MainActivity_NowPlaying에서  Intent로 받은 id를 rtsp url의 구분자로 사용합니다.
         Intent it = getIntent();
         recUrl = "http://115.71.232.230/theteacher/uploaded_video/"+it.getStringExtra("repath");
+        Log.i("Recorded", "ViewAct : "+recUrl);
 
         vvRecScreen.setVideoURI(Uri.parse(recUrl));
         vvRecScreen.setMediaController(new MediaController(this));
