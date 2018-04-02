@@ -70,7 +70,7 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
     LecChat_Adapter lecChatAdapter;
     // 스트리밍 영상에 필터를 씌울 때, 씌울 필터의 종류를 선택하기 위해 사용되는 spinner입니다.
     Spinner sFilter;
-    ArrayAdapter sinnerAdapter;
+    ArrayAdapter spinnerAdapter;
 
     // 채팅 메시지와 관련된 모든 역할을 합니다.
     // 채팅 서버와의 연결부터 메시지 전달, 받기, 종료까지 수행합니다.
@@ -138,10 +138,10 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
         filterList.add("POSTERIZE");
 
         // Filter들을 Sinnper와 연결할 Adapter에 등록합니다.
-        sinnerAdapter = new ArrayAdapter(this, android.R.layout.simple_spinner_item, filterList);
+        spinnerAdapter = new ArrayAdapter(this, android.R.layout.simple_spinner_item, filterList);
         // Spinner와 Adapter를 연결합니다.
-        sinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        sFilter.setAdapter(sinnerAdapter);
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        sFilter.setAdapter(spinnerAdapter);
         sFilter.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -456,7 +456,7 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
                 uploadThumbNail = new UploadThumbNail();
                 uploadThumbNail.start();
                 // 강의의 필터를 고르는 spinner를 보이게 해줍니다.
-                sFilter.setAdapter(sinnerAdapter);
+                sFilter.setAdapter(spinnerAdapter);
                 sFilter.setVisibility(View.VISIBLE);
                 Toast.makeText(getApplicationContext(), "강의를 시작합니다.", Toast.LENGTH_SHORT).show();
             } else if(result.equals("updateFail")){

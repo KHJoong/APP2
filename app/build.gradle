@@ -28,7 +28,7 @@ android {
 }
 
 repositories {
-    maven { url 'https://maven.google.com' }    // Glide
+    maven { url 'https://maven.google.com' }    // Glide & Google Mobile Vision
 }
 
 dependencies {
@@ -50,5 +50,8 @@ dependencies {
     compile files('libs/autobanh.jar')
     compile files('libs/base_java.jar')
     compile files('libs/libjingle_peerconnection.jar')
+    // OpenCV
     implementation project(':openCVLibrary341')
+    // Google Mobile Vision
+    compile 'com.google.android.gms:play-services-vision:12.0.0'
 }

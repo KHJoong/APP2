@@ -77,16 +77,16 @@ public class ProfileModifyActivity extends AppCompatActivity {
     private static String currentPhotoPath;
     private static Uri photoUri;
 
-    Button btnCamera;
-    Button btnGallery;
-    Button btnPicRemove;
-    ImageView ivProfilePic;
-    TextView tvMyId;
-    EditText etExPwd;
-    EditText etNewPwd;
-    EditText etNewPwdCheck;
-    TextView tvPwdAlert;
-    Button btnProfileChange;
+    Button btnCamera;           // 킄릭하면 카메라로 프로필 사진을 찍습니다.
+    Button btnGallery;          // 클릭하면 캘러리에서 프로필 사진을 가져옵니다.
+    Button btnPicRemove;        // 클릭하면 기존에 등록되어 있든 프로필 사진을 삭제합니다.
+    ImageView ivProfilePic;     // 현재 프로필 사진을 띄워줍니다.
+    TextView tvMyId;            // 자신의 ID를 담고 있는 뷰입니다.
+    EditText etExPwd;           // 현재 패스워드를 입력합니다.(패스워드 변경 시 입력해야 하는 부분입니다.)
+    EditText etNewPwd;          // 바꿀 패스워드를 입력합니다.
+    EditText etNewPwdCheck;     // 바꿀 패스워드를 한 번 더 입력합니다.
+    TextView tvPwdAlert;        // etNewPwd, etNewPwdCheck가 일치하지 않을 경우 경고를 띄워주는 텍스트뷰입니다.
+    Button btnProfileChange;    // 정보를 모두 입력했을 때 변경을 요청하는 버튼입니다.
 
     // 메모리 읽기와 쓰기, 카메라의 권한을 체크할 때 쓸 배열입니다.
     // permissionCheck() 에서 사용됩니다.
