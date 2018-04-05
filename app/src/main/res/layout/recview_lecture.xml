@@ -9,4 +9,12 @@
         android:layout_height="match_parent"
         android:layout_centerInParent="true"/>
 
+    <Button
+        android:id="@+id/btnGoMiniLecture"
+        android:layout_width="100dp"
+        android:layout_height="40dp"
+        android:text="전환"
+        android:layout_marginTop="8dp"
+        android:layout_marginLeft="8dp"/>
+
 </RelativeLayout>
