@@ -4,6 +4,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.PixelFormat;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
@@ -31,6 +32,7 @@ public class MiniLectureService extends Service {
 
     int returnValue;
     String lecUrl;
+    int current;
 
     LayoutInflater inflater;
     RelativeLayout viewContainer;
@@ -60,10 +62,11 @@ public class MiniLectureService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         handler = new Handler();
         lecUrl = intent.getStringExtra("lecUrl");
+        current = intent.getIntExtra("current", 0);
 
 //        returnValue = START_NOT_STICKY;
-//        returnValue = START_CONTINUATION_MASK;
-        return super.onStartCommand(intent, flags, startId);
+//        super.onStartCommand(intent, flags, startId)
+        return returnValue;
     }
 
     @Nullable
@@ -76,6 +79,7 @@ public class MiniLectureService extends Service {
     public void onCreate() {
         super.onCreate();
 
+        returnValue = START_CONTINUATION_MASK;
         handler = new Handler();
 
         new Thread(new Runnable() {
@@ -95,18 +99,7 @@ public class MiniLectureService extends Service {
 
                         vvMiniLecture.setOnTouchListener(viewTouchListener);
                         btnExit.setVisibility(View.GONE);
-                        btnExit.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                if(windowManager!=null){
-                                    if(viewContainer!=null) {
-                                        windowManager.removeView(viewContainer);
-                                        viewContainer = null;
-                                    }
-                                    windowManager = null;
-                                }
-                            }
-                        });
+                        btnExit.setOnClickListener(btnClickListener);
 
                         wmParams = new WindowManager.LayoutParams(
                                 WindowManager.LayoutParams.WRAP_CONTENT,
@@ -121,6 +114,8 @@ public class MiniLectureService extends Service {
 
                         // VideoView 영상 실행
                         vvMiniLecture.setVideoURI(Uri.parse(lecUrl));
+                        vvMiniLecture.seekTo(current);
+                        vvMiniLecture.setOnCompletionListener(vvCompleteListener);
                         vvMiniLecture.start();
 
                         windowManager.addView(viewContainer, wmParams);
@@ -133,9 +128,9 @@ public class MiniLectureService extends Service {
     @Override
     public void onDestroy() {
         if(windowManager!=null){
-            if(vvMiniLecture!=null) {
-                windowManager.removeView(vvMiniLecture);
-                vvMiniLecture = null;
+            if(viewContainer!=null) {
+                windowManager.removeView(viewContainer);
+                viewContainer = null;
             }
             windowManager = null;
         }
@@ -159,11 +154,30 @@ public class MiniLectureService extends Service {
         return distance;
     }
 
-    /**
-     * 터치 리스너
-     */
-    private View.OnTouchListener viewTouchListener = new View.OnTouchListener() {
+    private MediaPlayer.OnCompletionListener vvCompleteListener = new MediaPlayer.OnCompletionListener() {
+        @Override
+        public void onCompletion(MediaPlayer mp) {
 
+            returnValue = START_NOT_STICKY;
+
+        }
+    };
+
+    private View.OnClickListener btnClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if(windowManager!=null){
+                if(viewContainer!=null) {
+                    windowManager.removeView(viewContainer);
+                    viewContainer = null;
+                }
+                windowManager = null;
+            }
+        }
+    };
+
+
+    private View.OnTouchListener viewTouchListener = new View.OnTouchListener() {
         @Override
         public boolean onTouch(View v, MotionEvent event) {
 

@@ -75,12 +75,14 @@ public class RecordedViewActivity extends AppCompatActivity {
             } else {
                 Intent it = new Intent(RecordedViewActivity.this, MiniLectureService.class);
                 it.putExtra("lecUrl", recUrl);
+                it.putExtra("current", vvRecScreen.getCurrentPosition());
                 startService(it);
                 finish();
             }
         } else {
             Intent it = new Intent(RecordedViewActivity.this, MiniLectureService.class);
             it.putExtra("lecUrl", recUrl);
+            it.putExtra("current", vvRecScreen.getCurrentPosition());
             startService(it);
             finish();
         }
@@ -97,6 +99,7 @@ public class RecordedViewActivity extends AppCompatActivity {
             } else {
                 Intent it = new Intent(RecordedViewActivity.this, MiniLectureService.class);
                 it.putExtra("lecUrl", recUrl);
+                it.putExtra("current", vvRecScreen.getCurrentPosition());
                 startService(it);
                 finish();
             }
