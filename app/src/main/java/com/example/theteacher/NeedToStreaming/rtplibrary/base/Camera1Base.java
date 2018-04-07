@@ -8,6 +8,8 @@ import android.hardware.Camera;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
+import android.media.MediaScannerConnection;
+import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
@@ -79,6 +81,7 @@ public abstract class Camera1Base
   private MediaFormat videoFormat;
   private MediaFormat audioFormat;
   private boolean onChangeOrientation = false;
+  private String videoPath;
 
   public Camera1Base(SurfaceView surfaceView) {
     this.surfaceView = surfaceView;
@@ -312,6 +315,7 @@ public abstract class Camera1Base
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void startRecord(String path) throws IOException {
     if (streaming) {
+      videoPath = path;
       mediaMuxer = new MediaMuxer(path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
       if (videoFormat != null) {
         videoTrack = mediaMuxer.addTrack(videoFormat);
@@ -340,6 +344,14 @@ public abstract class Camera1Base
     }
     videoTrack = -1;
     audioTrack = -1;
+
+    // 갤러리에 나타나게 하는 부분입니다.
+    MediaScannerConnection.scanFile(context,
+            new String[]{videoPath}, null,
+            new MediaScannerConnection.OnScanCompletedListener() {
+              public void onScanCompleted(String path, Uri uri) {
+              }
+            });
   }
 
   /**
