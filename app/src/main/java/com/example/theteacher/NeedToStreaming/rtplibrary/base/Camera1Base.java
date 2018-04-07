@@ -346,6 +346,8 @@ public abstract class Camera1Base
     audioTrack = -1;
 
     // 갤러리에 나타나게 하는 부분입니다.
+    // startRecord에서 파일의 경로를 videoPath에 저장합니다.
+    // 이 부분에서 저장해둔 videoPath의 경로를 갤러리에 등록합니다.
     MediaScannerConnection.scanFile(context,
             new String[]{videoPath}, null,
             new MediaScannerConnection.OnScanCompletedListener() {
