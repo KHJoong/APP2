@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
+import android.util.Log;
 
 import java.io.DataOutputStream;
 import java.io.File;
@@ -115,7 +116,7 @@ public class VideoTransferService extends Service {
                         dos.flush();
 
                         // notification에 progressbar를 띄워주는 부분입니다.
-                        perc = count*100/(Integer.parseInt(fileSize));
+                        perc = (int)((float)count/(float)(Integer.parseInt(fileSize))*(float)100);
                         pgbar(perc);
                     }
 

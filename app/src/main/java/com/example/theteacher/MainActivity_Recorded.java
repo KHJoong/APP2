@@ -32,6 +32,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -201,11 +202,19 @@ public class MainActivity_Recorded extends Fragment implements AbsListView.OnScr
                 videoUri = data.getData();
                 videoPath = getVideoPath(videoUri);
 
-                // 등록할 강의의 제목을 입력받기 위해 custom dialog를 띄워줍니다.
-                RecordedEnroll_CustomDialog reDialog = new RecordedEnroll_CustomDialog(getActivity());
-                reDialog.setCancelable(true);
-                reDialog.getWindow().setGravity(Gravity.CENTER);
-                reDialog.show();
+                // 파일의 크기가 2GB를 넘으면 등록할 수 없도록 추가
+                File video = new File(videoPath);
+                long length = video.length();
+                if(length/1024/1024/1024>=2){
+                    Toast.makeText(getActivity().getApplicationContext(), "파일의 크기가 2GB를 넘을 수 없습니다.", Toast.LENGTH_SHORT).show();
+                } else {
+                    // 등록할 강의의 제목을 입력받기 위해 custom dialog를 띄워줍니다.
+                    RecordedEnroll_CustomDialog reDialog = new RecordedEnroll_CustomDialog(getActivity());
+                    reDialog.setCancelable(true);
+                    reDialog.getWindow().setGravity(Gravity.CENTER);
+                    reDialog.show();
+                }
+                video = null;
             }
         }
     }
