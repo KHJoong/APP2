@@ -24,6 +24,9 @@ import android.annotation.SuppressLint;
  * Created by kimhj on 2018-04-05.
  */
 
+// VideoView를 사용하여 setVideoUri, start를 하면 비디오 데이터를 받아옴
+// 하지만 여기서 일정 시간만큼만 받아오고 대기하다가 다시 받아오는 기능이 없음
+// 데이터를 완전히 받아온 후 VideoView가 재생하지 못한 파일이 5초 이상 남을 경우 ANR(Application Not Responding) 발생하는듯 함
 public class MiniLectureService extends Service {
 
     // 동영상이 재생중일 때는 서비스가 유지되도록 START_CONTINUATION_MASK

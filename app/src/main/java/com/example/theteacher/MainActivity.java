@@ -62,8 +62,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.main);
 
         // Signaling 서버와의 소켓 연결을 위한 SocketService 실행 --------------------------------------
-//        Intent socketIntent = new Intent(getApplicationContext(), SocketService.class);
-//        startService(socketIntent);
+        Intent socketIntent = new Intent(getApplicationContext(), SocketService.class);
+        startService(socketIntent);
         // -----------------------------------------------------------------------------------------
 
         dlSlidingMenu = (DrawerLayout)findViewById(R.id.dlSlidingMenu);

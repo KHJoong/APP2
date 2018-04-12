@@ -116,7 +116,7 @@ public class LecChatThread extends Thread{
             // 유저의 id와 서버에 접속한다는 의미인 type(join)을 채팅 서버로 전송합니다.
             jo.put("userId", id);
             jo.put("type", "join");
-            socketChannel.socket().getOutputStream().write(jo.toString().getBytes("EUC-KR"));
+            socketChannel.socket().getOutputStream().write(jo.toString().getBytes("UTF-8"));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -135,7 +135,7 @@ public class LecChatThread extends Thread{
                     jo.put("type", "enter_room");
                     jo.put("roomId", rId);
 
-                    socketChannel.socket().getOutputStream().write(jo.toString().getBytes("EUC-KR"));
+                    socketChannel.socket().getOutputStream().write(jo.toString().getBytes("UTF-8"));
                 } catch (JSONException e) {
                     e.printStackTrace();
                     Log.i("LecChatThread:", "joinRoom:JSONException:error:" + e.getMessage());
@@ -160,7 +160,7 @@ public class LecChatThread extends Thread{
             jo.put("currentRoom", rId);
             jo.put("content", lc);
 
-            socketChannel.socket().getOutputStream().write(jo.toString().getBytes("EUC-KR"));
+            socketChannel.socket().getOutputStream().write(jo.toString().getBytes("UTF-8"));
 
             handler.post(new Runnable() {
                 @Override
@@ -168,6 +168,12 @@ public class LecChatThread extends Thread{
                     LecChat lc = new LecChat(id, msg);
                     lcAdapter.addItem(lc);
                     lclv.setAdapter(lcAdapter);
+                    lcAdapter.notifyDataSetChanged();
+                    if(firVisibleNum+visibleCount==totalCount){
+                        lclv.setSelection(totalCount);
+                    } else {
+                        lclv.setSelection(firVisibleNum+visibleCount);
+                    }
                 }
             });
         } catch (JSONException e) {
@@ -189,7 +195,7 @@ public class LecChatThread extends Thread{
                     jo.put("type", "exit_room");
                     jo.put("roomId", rId);
 
-                    socketChannel.socket().getOutputStream().write(jo.toString().getBytes("EUC-KR"));
+                    socketChannel.socket().getOutputStream().write(jo.toString().getBytes("UTF-8"));
 
                     if (socketChannel.isConnected()) {
                         socketChannel.finishConnect();
@@ -231,7 +237,7 @@ public class LecChatThread extends Thread{
                         throw new IOException();
                     }
                     byteBuffer.flip();
-                    Charset charset = Charset.forName("EUC-KR");
+                    Charset charset = Charset.forName("UTF-8");
                     JSONObject ob = new JSONObject(charset.decode(byteBuffer).toString());
                     userid = ob.getString("userId");
                     content = ob.getString("content");
@@ -301,7 +307,7 @@ public class LecChatThread extends Thread{
                 os.write(jo.toString().getBytes());
                 os.flush();
 
-                InputStreamReader tmp = new InputStreamReader(httpURLConnection.getInputStream(), "EUC-KR");
+                InputStreamReader tmp = new InputStreamReader(httpURLConnection.getInputStream(), "UTF-8");
                 BufferedReader reader = new BufferedReader(tmp);
                 StringBuilder builder = new StringBuilder();
                 String str;
