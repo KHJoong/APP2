@@ -54,4 +54,6 @@ dependencies {
     implementation project(':openCVLibrary341')
     // Google Mobile Vision
     compile 'com.google.android.gms:play-services-vision:12.0.0'
+    // TedPermission(library to manage permission)
+    compile 'gun0912.ted:tedpermission:2.1.1'
 }

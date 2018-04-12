@@ -1,5 +1,6 @@
 package com.example.theteacher;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -14,13 +15,17 @@ import android.webkit.URLUtil;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.gun0912.tedpermission.PermissionListener;
+import com.gun0912.tedpermission.TedPermission;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Random;
 
 /**
@@ -122,31 +127,13 @@ public class LectureDetailActivity extends AppCompatActivity {
         public void onClick(View view) {
             switch (view.getId()){
                 case R.id.btnVideoCall :
-                    Random generator = new Random();
-                    reqRoomNum = generator.nextInt(10000);
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            JSONObject jo = new JSONObject();
-                            try {
-                                // 버튼을 클릭할 경우 지금 보고있는 강의의 강사 ID를 담아서 서버로 보냅니다.
-                                // 서버에서 해당 강사의 ID에 맞는 socket channel을 찾은 후 신호를 전달해줍니다.
-                                // type의 signal은 서버에 연결되어 있을 때, 신호를 요청하는 중이라는 뜻입니다.
-                                jo.put("userId", sp.getString("id", ""));
-                                jo.put("type", "signal");
-                                jo.put("addType", "start");
-                                jo.put("roomNum", reqRoomNum);
-                                jo.put("toUserId", id);
-                                String sendData = jo.toString();
-                                SocketService.socketChannel.socket().getOutputStream().write(sendData.getBytes("EUC-KR"));
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }).start();
-                    connectToRoom(String.valueOf(reqRoomNum), false, false, false, 0);
+                    // TedPermission Library 사용 부분입니다.
+                    // 학생이 영상 상담을 요청하기 위해서 필요한 카메라, 오디오 권한을 받습니다.
+                    TedPermission.with(LectureDetailActivity.this)
+                            .setPermissionListener(permissionlistener)
+                            .setDeniedMessage("영상 통화에 필요한 권한입니다.\n권한이 없을 경우 통화할 수 없습니다.\n[Setting] > [Permission]")
+                            .setPermissions(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO, Manifest.permission.MODIFY_AUDIO_SETTINGS)
+                            .check();
                     break;
                 case R.id.btnLectureReady :
                     // 이 버튼을 클릭하면 강의를 준비하는 화면으로 넘어갑니다.
@@ -160,7 +147,45 @@ public class LectureDetailActivity extends AppCompatActivity {
         }
     };
 
+    // TedPermission Library 사용 부분입니다.
+    // 권한을 수락했을 경우 통화를 요청할 수 있도록 하였습니다.
+    // 권한이 거부되었을 경우 통화를 요청할 수 없도록 하였습니다.
+    PermissionListener permissionlistener = new PermissionListener() {
+        @Override
+        public void onPermissionGranted() {
+            Toast.makeText(LectureDetailActivity.this, "감사합니다. 통화를 요청합니다.", Toast.LENGTH_SHORT).show();
+            Random generator = new Random();
+            reqRoomNum = generator.nextInt(10000);
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    JSONObject jo = new JSONObject();
+                    try {
+                        // 버튼을 클릭할 경우 지금 보고있는 강의의 강사 ID를 담아서 서버로 보냅니다.
+                        // 서버에서 해당 강사의 ID에 맞는 socket channel을 찾은 후 신호를 전달해줍니다.
+                        // type의 signal은 서버에 연결되어 있을 때, 신호를 요청하는 중이라는 뜻입니다.
+                        jo.put("userId", sp.getString("id", ""));
+                        jo.put("type", "signal");
+                        jo.put("addType", "start");
+                        jo.put("roomNum", reqRoomNum);
+                        jo.put("toUserId", id);
+                        String sendData = jo.toString();
+                        SocketService.socketChannel.socket().getOutputStream().write(sendData.getBytes("EUC-KR"));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+            connectToRoom(String.valueOf(reqRoomNum), false, false, false, 0);
+        }
 
+        @Override
+        public void onPermissionDenied(ArrayList<String> deniedPermissions) {
+            Toast.makeText(LectureDetailActivity.this, "통화에 필요한 권한이 거부되어 통화를 요청할 수 없습니다.\n", Toast.LENGTH_SHORT).show();
+        }
+    };
 
 
 

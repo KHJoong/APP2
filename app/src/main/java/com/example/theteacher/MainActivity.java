@@ -1,8 +1,10 @@
 package com.example.theteacher;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Fragment;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
@@ -17,6 +19,10 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
+
+import com.gun0912.tedpermission.PermissionListener;
+import com.gun0912.tedpermission.TedPermission;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -43,6 +49,8 @@ public class MainActivity extends AppCompatActivity {
     // 프래그먼트 전환을 부드럽게 처리하기 위하여 스레드를 사용해 처리합니다.
     // 그 때 사용하기 위한 Handler입니다.
     private Handler hdrSwitchFrag = new Handler();
+    // user의 타입이 teacher인지 student인지 담고 있는 shared입니다.
+    private SharedPreferences sp;
 
     // 슬라이딩 메뉴 버튼을 클릭 시 다음 메뉴가 나타나게 됩니다.
     // 위의 menuList 배열에 다음 메뉴 이름을 String으로 담습니다.
@@ -78,7 +86,44 @@ public class MainActivity extends AppCompatActivity {
             getSupportActionBar().setTitle(R.string.app_name);
         }
 
+        // TedPermission Library 사용 부분입니다.
+        // 강사로 로그인 했을 경우 언제든 영상 통화를 받을 수 있어야 하기에 카메라, 오디오 권한을 받습니다.
+        // 하지만 학생의 경우 영상 상담 요청을 하지 않을 경우 필요하지 않기에 여기서 요구하지 않습니다.
+        sp = getSharedPreferences("profile", MODE_PRIVATE);
+        if(sp.getString("position", "").equals("teacher")){
+            TedPermission.with(this)
+                    .setPermissionListener(permissionlistener)
+                    .setDeniedMessage("영상 상담을 받기 위해 필요한 권한입니다.\n권한을 허가하셔야 상담을 받을 수 있습니다.\n[Setting] > [Permission]")
+                    .setPermissions(Manifest.permission.INTERNET, Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO, Manifest.permission.MODIFY_AUDIO_SETTINGS)
+                    .check();
+        } else {
+            TedPermission.with(this)
+                    .setPermissionListener(permissionlistener)
+                    .setDeniedMessage("TheTeacher은 인터넷 권한이 있어야 사용할 수 있습니다. \n[Setting] > [Permission]에서 설정해주시기 바랍니다.")
+                    .setPermissions(Manifest.permission.INTERNET)
+                    .check();
+        }
+
     } // onCreate 끝부분입니다.
+
+    // TedPermission Library 사용 부분입니다.
+    // 허락했을 때, 거부했을 때의 Action으로 구성합니다.
+    PermissionListener permissionlistener = new PermissionListener() {
+        @Override
+        public void onPermissionGranted() {
+            Toast.makeText(MainActivity.this, "감사합니다.", Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public void onPermissionDenied(ArrayList<String> deniedPermissions) {
+            if(sp.getString("position", "").equals("teacher")){
+                Toast.makeText(MainActivity.this, "권한이 거부되었습니다.\n 영상 상담 전화를 받을 수 없습니다.", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(MainActivity.this, "권한이 거부되었습니다.\n", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+        }
+    };
 
     @ Override
     public void onBackPressed() {

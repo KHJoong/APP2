@@ -1,5 +1,6 @@
 package com.example.theteacher;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -18,6 +19,10 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
+
+import com.gun0912.tedpermission.PermissionListener;
+import com.gun0912.tedpermission.TedPermission;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -100,7 +105,30 @@ public class LectureManageActivity extends AppCompatActivity {
                 startActivity(it);
             }
         });
+
+        // TedPermission Library 사용 부분입니다.
+        // SQLite를 사용할 수 있도록 권한을 부여합니다.
+        TedPermission.with(LectureManageActivity.this)
+                .setPermissionListener(permissionlistener)
+                .setDeniedMessage("강의를 등록하거나.\n등록해둔 강의를 불러오기 위해 필요한 권한입니다.\n[Setting] > [Permission]")
+                .setPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE)
+                .check();
     }
+
+    // TedPermission Library 사용 부분입니다.
+    // 허락했을 때, 거부했을 때의 Action으로 구성합니다.
+    PermissionListener permissionlistener = new PermissionListener() {
+        @Override
+        public void onPermissionGranted() {
+            Toast.makeText(LectureManageActivity.this, "감사합니다.", Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public void onPermissionDenied(ArrayList<String> deniedPermissions) {
+            Toast.makeText(LectureManageActivity.this, "권한이 거부되었습니다.\n강의를 등록하거나 불러올 수 없습니다.", Toast.LENGTH_SHORT).show();
+            finish();
+        }
+    };
 
     Button.OnClickListener btnClickListener = new View.OnClickListener() {
         @Override

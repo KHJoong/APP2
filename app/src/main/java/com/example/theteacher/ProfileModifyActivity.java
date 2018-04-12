@@ -7,9 +7,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.media.MediaScannerConnection;
@@ -19,8 +17,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -36,6 +32,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.gun0912.tedpermission.PermissionListener;
+import com.gun0912.tedpermission.TedPermission;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -88,19 +86,12 @@ public class ProfileModifyActivity extends AppCompatActivity {
     TextView tvPwdAlert;        // etNewPwd, etNewPwdCheck가 일치하지 않을 경우 경고를 띄워주는 텍스트뷰입니다.
     Button btnProfileChange;    // 정보를 모두 입력했을 때 변경을 요청하는 버튼입니다.
 
-    // 메모리 읽기와 쓰기, 카메라의 권한을 체크할 때 쓸 배열입니다.
-    // permissionCheck() 에서 사용됩니다.
-    private String[] permissions = {Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA};
-    private static final int MULTIPLE_PERMISSIONS = 101;
-
     SharedPreferences sp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.profile_modify);
-
-        permissionCheck();
 
         sp = getSharedPreferences("profile", MODE_PRIVATE);
 
@@ -153,8 +144,30 @@ public class ProfileModifyActivity extends AppCompatActivity {
         btnGallery.setOnClickListener(btnClickListener);
         btnPicRemove.setOnClickListener(btnClickListener);
         btnProfileChange.setOnClickListener(btnClickListener);
+
+        // TedPermission Library 사용 부분입니다.
+        // 사진을 찍기 위한 카메라 권한, 그리고 갤러리에 저장하기 위한 저장소 권한을 부여합니다.
+        TedPermission.with(ProfileModifyActivity.this)
+                .setPermissionListener(permissionlistener)
+                .setDeniedMessage("사진을 찍고 저장하거나\n 사진을 불러오기 위해 필요한 권한입니다.\n[Setting] > [Permission]")
+                .setPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE)
+                .check();
     }
 
+    // TedPermission Library 사용 부분입니다.
+    // 허락했을 때, 거부했을 때의 Action으로 구성합니다.
+    PermissionListener permissionlistener = new PermissionListener() {
+        @Override
+        public void onPermissionGranted() {
+            Toast.makeText(ProfileModifyActivity.this, "감사합니다.", Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public void onPermissionDenied(ArrayList<String> deniedPermissions) {
+            Toast.makeText(ProfileModifyActivity.this, "권한이 거부되었습니다.\n프로필 수정을 할 수 없습니다.", Toast.LENGTH_SHORT).show();
+            finish();
+        }
+    };
 
     Button.OnClickListener btnClickListener = new View.OnClickListener() {
         @Override
@@ -188,64 +201,6 @@ public class ProfileModifyActivity extends AppCompatActivity {
     public void onBackPressed() {
         super.onBackPressed();
 
-        finish();
-    }
-
-    // permissions 배열에 들어있는 메모리 읽기 쓰기, 카메라 권한 중 설정되지 않은 항목이 있는지 체크하는 부분입니다.
-    private boolean permissionCheck() {
-        int result;
-        List<String> permissionList = new ArrayList<>();
-        for (String pm : permissions) {
-            result = ContextCompat.checkSelfPermission(this, pm);
-            if (result != PackageManager.PERMISSION_GRANTED) {
-                permissionList.add(pm);
-            }
-        }
-        if (!permissionList.isEmpty()) {
-            ActivityCompat.requestPermissions(this, permissionList.toArray(new String[permissionList.size()]), MULTIPLE_PERMISSIONS);
-            return false;
-        }
-        return true;
-    }
-
-    // permissionCheck() 에서 권한을 요청한 것에 대해 결과를 받아와 처리하는 부분입니다.
-    // 승인했을 경우 그냥 진행 되지만, 거부했을 경우 showNoPermissionToastAndFinish()이 실행되며 종료됩니다.
-    // 다시 권한을 요청하게됩니다.
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case MULTIPLE_PERMISSIONS: {
-                if (grantResults.length > 0) {
-                    for (int i = 0; i < permissions.length; i++) {
-                        if (permissions[i].equals(this.permissions[0])) {
-                            if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
-                                // 읽기 권한
-                                showNoPermissionToastAndFinish();
-                            }
-                        } else if (permissions[i].equals(this.permissions[1])) {
-                            if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
-                                // 쓰기 권한
-                                showNoPermissionToastAndFinish();
-
-                            }
-                        } else if (permissions[i].equals(this.permissions[2])) {
-                            if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
-                                // 카메라 권한
-                                showNoPermissionToastAndFinish();
-
-                            }
-                        }
-                    }
-                } else {
-                    showNoPermissionToastAndFinish();
-                }
-                return;
-            }
-        }
-    }
-
-    private void showNoPermissionToastAndFinish() {
-        Toast.makeText(this, "권한 요청에 동의 해주셔야 이용 가능합니다. 설정에서 권한 허용 하시기 바랍니다.", Toast.LENGTH_SHORT).show();
         finish();
     }
 
