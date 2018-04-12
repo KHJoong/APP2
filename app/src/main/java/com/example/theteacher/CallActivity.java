@@ -117,6 +117,7 @@ public class CallActivity extends AppCompatActivity implements AppRTCClient.Sign
     public static final String EXTRA_PROTOCOL = "com.example.theteacher.PROTOCOL";
     public static final String EXTRA_NEGOTIATED = "com.example.theteacher.NEGOTIATED";
     public static final String EXTRA_ID = "com.example.theteacher.ID";
+    public static final String EXTRA_CALLER_ID = "com.example.theteacher.CallID";
 
     private static final int CAPTURE_PERMISSION_REQUEST_CODE = 1;
 

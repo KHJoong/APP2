@@ -157,7 +157,7 @@ public class QuestionViewActivity extends AppCompatActivity{
                 jo.put("roomId", queTitle);
 
                 if(socketChannel !=null){
-                    socketChannel.socket().getOutputStream().write(jo.toString().getBytes("EUC-KR"));
+                    socketChannel.socket().getOutputStream().write(jo.toString().getBytes("UTF-8"));
                 }
 
                 if(userType.equals("my")){
@@ -240,7 +240,7 @@ public class QuestionViewActivity extends AppCompatActivity{
                 jo.put("userId", sp.getString("id", ""));
                 jo.put("roomId", queTitle);
                 jo.put("type", "join");
-                socketChannel.socket().getOutputStream().write(jo.toString().getBytes("EUC-KR"));
+                socketChannel.socket().getOutputStream().write(jo.toString().getBytes("UTF-8"));
 
                 Thread.sleep(1000);
 
@@ -248,7 +248,7 @@ public class QuestionViewActivity extends AppCompatActivity{
                 jo.put("userId", sp.getString("id", ""));
                 jo.put("type", "enter_room");
 
-                socketChannel.socket().getOutputStream().write(jo.toString().getBytes("EUC-KR"));
+                socketChannel.socket().getOutputStream().write(jo.toString().getBytes("UTF-8"));
 
                 dv.receiveStart();
             } catch (IOException e) {
@@ -291,7 +291,7 @@ public class QuestionViewActivity extends AppCompatActivity{
                 os.write(jsonObject.toString().getBytes());
                 os.flush();
 
-                InputStreamReader tmp = new InputStreamReader(httpURLConnection.getInputStream(), "EUC-KR");
+                InputStreamReader tmp = new InputStreamReader(httpURLConnection.getInputStream(), "UTF-8");
                 BufferedReader reader = new BufferedReader(tmp);
                 StringBuilder builder = new StringBuilder();
                 String str;

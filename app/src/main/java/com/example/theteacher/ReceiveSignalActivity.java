@@ -406,6 +406,7 @@ public class ReceiveSignalActivity extends AppCompatActivity {
             intent.putExtra(CallActivity.EXTRA_TRACING, tracing);
             intent.putExtra(CallActivity.EXTRA_CMDLINE, commandLineRun);
             intent.putExtra(CallActivity.EXTRA_RUNTIME, runTimeMs);
+            intent.putExtra(CallActivity.EXTRA_CALLER_ID, otherId);
 
             intent.putExtra(CallActivity.EXTRA_DATA_CHANNEL_ENABLED, dataChannelEnabled);
 
