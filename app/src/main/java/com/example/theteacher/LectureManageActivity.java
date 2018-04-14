@@ -264,6 +264,7 @@ public class LectureManageActivity extends AppCompatActivity {
 
                 Lecture lecture = new Lecture(lecTitle, lecObject, lecExplain, lecTime);
                 lectureAdapter.addItem(lecture);
+                lectureAdapter.notifyDataSetChanged();
             } else {
                 // 서버에 강의 등록 실패 시 확인 알람 창 띄워줍니다.
                 alertDialogBuilder.setMessage("네트워크 상태를 다시 확인해주세요.")
