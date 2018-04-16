@@ -139,8 +139,9 @@ public class LectureDetailActivity extends AppCompatActivity {
                     // 이 버튼을 클릭하면 강의를 준비하는 화면으로 넘어갑니다.
                     // 카메라를 이용하여 미리 보는 화면을 보여주고
                     // 녹화 버튼을 클릭할 경우 강의를 시작. 정지할 수 있는 화면입니다.
+                    String titleRemovedSpace = title.replace(" ", "_");
                     Intent it = new Intent(getApplicationContext(), LecturePlayActivity.class);
-                    it.putExtra("title", title);
+                    it.putExtra("title", titleRemovedSpace);
                     startActivity(it);
                     break;
             }

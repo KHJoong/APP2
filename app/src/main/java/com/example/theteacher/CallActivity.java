@@ -562,7 +562,7 @@ public class CallActivity extends AppCompatActivity implements AppRTCClient.Sign
         callStartedTimeMs = System.currentTimeMillis();
 
         // Start room connection.
-        logAndToast(getString(R.string.connecting_to, roomConnectionParameters.roomUrl));
+//        logAndToast(getString(R.string.connecting_to, roomConnectionParameters.roomUrl));
         appRtcClient.connectToRoom(roomConnectionParameters);
 
         // Create and audio manager that will take care of audio routing,
