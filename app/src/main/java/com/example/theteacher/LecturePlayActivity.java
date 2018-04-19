@@ -138,7 +138,7 @@ public class LecturePlayActivity extends AppCompatActivity implements SurfaceHol
         filterList.add("POSTERIZE");
 
         // Filter들을 Sinnper와 연결할 Adapter에 등록합니다.
-        spinnerAdapter = new ArrayAdapter(this, android.R.layout.simple_spinner_item, filterList);
+        spinnerAdapter = new ArrayAdapter(this, R.layout.lecture_play_sfilter_style, filterList);
         // Spinner와 Adapter를 연결합니다.
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         sFilter.setAdapter(spinnerAdapter);

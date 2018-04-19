@@ -73,7 +73,7 @@ public class MainActivity_NowPlaying extends Fragment implements AbsListView.OnS
                 // 전달된 teacherId는 시청할 강의의 rtsp url을 확인하는데 사용됩니다.
                 Intent it = new Intent(getActivity().getApplicationContext(), LectureViewActivity.class);
                 it.putExtra("teacherId", nowPlayingAdapter.npItem.get(position).getTeacherId());
-                it.putExtra("lecTitle", nowPlayingAdapter.npItem.get(position).getLecTitle());
+                it.putExtra("lecTitle", nowPlayingAdapter.npItem.get(position).getLecTitle().replace(" ", "_"));
                 startActivity(it);
             }
         });
@@ -223,7 +223,8 @@ public class MainActivity_NowPlaying extends Fragment implements AbsListView.OnS
                             id = jo.getString("id");
                         }
                         if(!TextUtils.isEmpty(jo.getString("title"))){
-                            title = jo.getString("title");
+                            String tmpTitle = jo.getString("title");
+                            title = tmpTitle.replace("_", " ");
                         }
                         if(!TextUtils.isEmpty(jo.getString("path"))){
                             path = "http://www.o-ddang.com/theteacher/"+jo.getString("path");
